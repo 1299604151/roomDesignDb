@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.FarmerMapper">
+    
+    <resultMap type="Farmer" id="FarmerResult">
+        <result property="id"    column="id"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="gender"    column="gender"    />
+        <result property="age"    column="age"    />
+        <result property="name"    column="name"    />
+        <result property="groupId"    column="group_id"    />
+    </resultMap>
+
+    <sql id="selectFarmerVo">
+        select id, student_id, gender, age, name, group_id from farmer
+    </sql>
+
+    <select id="selectFarmerList" parameterType="Farmer" resultMap="FarmerResult">
+        <include refid="selectFarmerVo"/>
+        <where>  
+            <if test="studentId != null  and studentId != ''"> and student_id = #{studentId}</if>
+            <if test="gender != null  and gender != ''"> and gender = #{gender}</if>
+            <if test="age != null "> and age = #{age}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="groupId != null "> and group_id = #{groupId}</if>
+        </where>
+    </select>
+    
+    <select id="selectFarmerById" parameterType="Long" resultMap="FarmerResult">
+        <include refid="selectFarmerVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFarmer" parameterType="Farmer" useGeneratedKeys="true" keyProperty="id">
+        insert into farmer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="studentId != null and studentId != ''">student_id,</if>
+            <if test="gender != null and gender != ''">gender,</if>
+            <if test="age != null">age,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="groupId != null">group_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="studentId != null and studentId != ''">#{studentId},</if>
+            <if test="gender != null and gender != ''">#{gender},</if>
+            <if test="age != null">#{age},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="groupId != null">#{groupId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFarmer" parameterType="Farmer">
+        update farmer
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="studentId != null and studentId != ''">student_id = #{studentId},</if>
+            <if test="gender != null and gender != ''">gender = #{gender},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="groupId != null">group_id = #{groupId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFarmerById" parameterType="Long">
+        delete from farmer where id = #{id}
+    </delete>
+
+    <delete id="deleteFarmerByIds" parameterType="String">
+        delete from farmer where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

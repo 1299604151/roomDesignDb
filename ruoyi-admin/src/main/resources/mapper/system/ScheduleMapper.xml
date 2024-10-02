@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.ScheduleMapper">
+    
+    <resultMap type="Schedule" id="ScheduleResult">
+        <result property="id"    column="id"    />
+        <result property="employeeId"    column="employee_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="classTime"    column="class_time"    />
+        <result property="venueId"    column="venue_id"    />
+    </resultMap>
+
+    <sql id="selectScheduleVo">
+        select id, employee_id, course_id, class_time, venue_id from schedule
+    </sql>
+
+    <select id="selectScheduleList" parameterType="Schedule" resultMap="ScheduleResult">
+        <include refid="selectScheduleVo"/>
+        <where>  
+            <if test="employeeId != null  and employeeId != ''"> and employee_id = #{employeeId}</if>
+            <if test="courseId != null  and courseId != ''"> and course_id = #{courseId}</if>
+            <if test="classTime != null "> and class_time = #{classTime}</if>
+            <if test="venueId != null  and venueId != ''"> and venue_id = #{venueId}</if>
+        </where>
+    </select>
+    
+    <select id="selectScheduleById" parameterType="Long" resultMap="ScheduleResult">
+        <include refid="selectScheduleVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertSchedule" parameterType="Schedule" useGeneratedKeys="true" keyProperty="id">
+        insert into schedule
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="employeeId != null and employeeId != ''">employee_id,</if>
+            <if test="courseId != null and courseId != ''">course_id,</if>
+            <if test="classTime != null">class_time,</if>
+            <if test="venueId != null and venueId != ''">venue_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="employeeId != null and employeeId != ''">#{employeeId},</if>
+            <if test="courseId != null and courseId != ''">#{courseId},</if>
+            <if test="classTime != null">#{classTime},</if>
+            <if test="venueId != null and venueId != ''">#{venueId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSchedule" parameterType="Schedule">
+        update schedule
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="employeeId != null and employeeId != ''">employee_id = #{employeeId},</if>
+            <if test="courseId != null and courseId != ''">course_id = #{courseId},</if>
+            <if test="classTime != null">class_time = #{classTime},</if>
+            <if test="venueId != null and venueId != ''">venue_id = #{venueId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteScheduleById" parameterType="Long">
+        delete from schedule where id = #{id}
+    </delete>
+
+    <delete id="deleteScheduleByIds" parameterType="String">
+        delete from schedule where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
