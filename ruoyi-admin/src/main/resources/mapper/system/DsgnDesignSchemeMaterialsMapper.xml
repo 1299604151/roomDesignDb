@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DsgnDesignSchemeMaterialsMapper">
+    
+    <resultMap type="DsgnDesignSchemeMaterials" id="DsgnDesignSchemeMaterialsResult">
+        <result property="id"    column="id"    />
+        <result property="designSchemeId"    column="design_scheme_id"    />
+        <result property="materialId"    column="material_id"    />
+        <result property="usageDescription"    column="usage_description"    />
+        <result property="createdAt"    column="created_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnDesignSchemeMaterialsVo">
+        select id, design_scheme_id, material_id, usage_description, created_at from dsgn_design_scheme_materials
+    </sql>
+
+    <select id="selectDsgnDesignSchemeMaterialsList" parameterType="DsgnDesignSchemeMaterials" resultMap="DsgnDesignSchemeMaterialsResult">
+        <include refid="selectDsgnDesignSchemeMaterialsVo"/>
+        <where>  
+            <if test="designSchemeId != null "> and design_scheme_id = #{designSchemeId}</if>
+            <if test="materialId != null "> and material_id = #{materialId}</if>
+            <if test="usageDescription != null  and usageDescription != ''"> and usage_description = #{usageDescription}</if>
+            <if test="createdAt != null "> and created_at = #{createdAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnDesignSchemeMaterialsById" parameterType="Long" resultMap="DsgnDesignSchemeMaterialsResult">
+        <include refid="selectDsgnDesignSchemeMaterialsVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnDesignSchemeMaterials" parameterType="DsgnDesignSchemeMaterials" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_design_scheme_materials
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="designSchemeId != null">design_scheme_id,</if>
+            <if test="materialId != null">material_id,</if>
+            <if test="usageDescription != null">usage_description,</if>
+            <if test="createdAt != null">created_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="designSchemeId != null">#{designSchemeId},</if>
+            <if test="materialId != null">#{materialId},</if>
+            <if test="usageDescription != null">#{usageDescription},</if>
+            <if test="createdAt != null">#{createdAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnDesignSchemeMaterials" parameterType="DsgnDesignSchemeMaterials">
+        update dsgn_design_scheme_materials
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="designSchemeId != null">design_scheme_id = #{designSchemeId},</if>
+            <if test="materialId != null">material_id = #{materialId},</if>
+            <if test="usageDescription != null">usage_description = #{usageDescription},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnDesignSchemeMaterialsById" parameterType="Long">
+        delete from dsgn_design_scheme_materials where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnDesignSchemeMaterialsByIds" parameterType="String">
+        delete from dsgn_design_scheme_materials where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DsgnTicketsMapper">
+    
+    <resultMap type="DsgnTickets" id="DsgnTicketsResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="subject"    column="subject"    />
+        <result property="description"    column="description"    />
+        <result property="status"    column="status"    />
+        <result property="priority"    column="priority"    />
+        <result property="createdAt"    column="created_at"    />
+        <result property="updatedAt"    column="updated_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnTicketsVo">
+        select id, user_id, subject, description, status, priority, created_at, updated_at from dsgn_tickets
+    </sql>
+
+    <select id="selectDsgnTicketsList" parameterType="DsgnTickets" resultMap="DsgnTicketsResult">
+        <include refid="selectDsgnTicketsVo"/>
+        <where>  
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="subject != null  and subject != ''"> and subject = #{subject}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="priority != null  and priority != ''"> and priority = #{priority}</if>
+            <if test="createdAt != null "> and created_at = #{createdAt}</if>
+            <if test="updatedAt != null "> and updated_at = #{updatedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnTicketsById" parameterType="Long" resultMap="DsgnTicketsResult">
+        <include refid="selectDsgnTicketsVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnTickets" parameterType="DsgnTickets" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_tickets
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="subject != null and subject != ''">subject,</if>
+            <if test="description != null and description != ''">description,</if>
+            <if test="status != null">status,</if>
+            <if test="priority != null">priority,</if>
+            <if test="createdAt != null">created_at,</if>
+            <if test="updatedAt != null">updated_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="subject != null and subject != ''">#{subject},</if>
+            <if test="description != null and description != ''">#{description},</if>
+            <if test="status != null">#{status},</if>
+            <if test="priority != null">#{priority},</if>
+            <if test="createdAt != null">#{createdAt},</if>
+            <if test="updatedAt != null">#{updatedAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnTickets" parameterType="DsgnTickets">
+        update dsgn_tickets
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="subject != null and subject != ''">subject = #{subject},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnTicketsById" parameterType="Long">
+        delete from dsgn_tickets where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnTicketsByIds" parameterType="String">
+        delete from dsgn_tickets where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

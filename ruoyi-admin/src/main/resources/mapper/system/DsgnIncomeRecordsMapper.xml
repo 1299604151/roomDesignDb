@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DsgnIncomeRecordsMapper">
+    
+    <resultMap type="DsgnIncomeRecords" id="DsgnIncomeRecordsResult">
+        <result property="id"    column="id"    />
+        <result property="orderId"    column="order_id"    />
+        <result property="amount"    column="amount"    />
+        <result property="recordedAt"    column="recorded_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnIncomeRecordsVo">
+        select id, order_id, amount, recorded_at from dsgn_income_records
+    </sql>
+
+    <select id="selectDsgnIncomeRecordsList" parameterType="DsgnIncomeRecords" resultMap="DsgnIncomeRecordsResult">
+        <include refid="selectDsgnIncomeRecordsVo"/>
+        <where>  
+            <if test="orderId != null "> and order_id = #{orderId}</if>
+            <if test="amount != null "> and amount = #{amount}</if>
+            <if test="recordedAt != null "> and recorded_at = #{recordedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnIncomeRecordsById" parameterType="Long" resultMap="DsgnIncomeRecordsResult">
+        <include refid="selectDsgnIncomeRecordsVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnIncomeRecords" parameterType="DsgnIncomeRecords" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_income_records
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderId != null">order_id,</if>
+            <if test="amount != null">amount,</if>
+            <if test="recordedAt != null">recorded_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderId != null">#{orderId},</if>
+            <if test="amount != null">#{amount},</if>
+            <if test="recordedAt != null">#{recordedAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnIncomeRecords" parameterType="DsgnIncomeRecords">
+        update dsgn_income_records
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="orderId != null">order_id = #{orderId},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="recordedAt != null">recorded_at = #{recordedAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnIncomeRecordsById" parameterType="Long">
+        delete from dsgn_income_records where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnIncomeRecordsByIds" parameterType="String">
+        delete from dsgn_income_records where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

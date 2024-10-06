@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DsgnDesignSchemesMapper">
+    
+    <resultMap type="DsgnDesignSchemes" id="DsgnDesignSchemesResult">
+        <result property="id"    column="id"    />
+        <result property="title"    column="title"    />
+        <result property="tagline"    column="tagline"    />
+        <result property="price"    column="price"    />
+        <result property="styleId"    column="style_id"    />
+        <result property="spaceType"    column="space_type"    />
+        <result property="recommendedArea"    column="recommended_area"    />
+        <result property="budgetRange"    column="budget_range"    />
+        <result property="mainImageUrl"    column="main_image_url"    />
+        <result property="previewImages"    column="preview_images"    />
+        <result property="colorSchemeDescription"    column="color_scheme_description"    />
+        <result property="designConcept"    column="design_concept"    />
+        <result property="features"    column="features"    />
+        <result property="designerId"    column="designer_id"    />
+        <result property="status"    column="status"    />
+        <result property="publishDate"    column="publish_date"    />
+        <result property="viewCount"    column="view_count"    />
+        <result property="likeCount"    column="like_count"    />
+        <result property="createdAt"    column="created_at"    />
+        <result property="updatedAt"    column="updated_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnDesignSchemesVo">
+        select id, title, tagline, price, style_id, space_type, recommended_area, budget_range, main_image_url, preview_images, color_scheme_description, design_concept, features, designer_id, status, publish_date, view_count, like_count, created_at, updated_at from dsgn_design_schemes
+    </sql>
+
+    <select id="selectDsgnDesignSchemesList" parameterType="DsgnDesignSchemes" resultMap="DsgnDesignSchemesResult">
+        <include refid="selectDsgnDesignSchemesVo"/>
+        <where>  
+            <if test="title != null  and title != ''"> and title = #{title}</if>
+            <if test="tagline != null  and tagline != ''"> and tagline = #{tagline}</if>
+            <if test="price != null "> and price = #{price}</if>
+            <if test="styleId != null "> and style_id = #{styleId}</if>
+            <if test="spaceType != null  and spaceType != ''"> and space_type = #{spaceType}</if>
+            <if test="recommendedArea != null  and recommendedArea != ''"> and recommended_area = #{recommendedArea}</if>
+            <if test="budgetRange != null  and budgetRange != ''"> and budget_range = #{budgetRange}</if>
+            <if test="mainImageUrl != null  and mainImageUrl != ''"> and main_image_url = #{mainImageUrl}</if>
+            <if test="previewImages != null  and previewImages != ''"> and preview_images = #{previewImages}</if>
+            <if test="colorSchemeDescription != null  and colorSchemeDescription != ''"> and color_scheme_description = #{colorSchemeDescription}</if>
+            <if test="designConcept != null  and designConcept != ''"> and design_concept = #{designConcept}</if>
+            <if test="features != null  and features != ''"> and features = #{features}</if>
+            <if test="designerId != null "> and designer_id = #{designerId}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="publishDate != null "> and publish_date = #{publishDate}</if>
+            <if test="viewCount != null "> and view_count = #{viewCount}</if>
+            <if test="likeCount != null "> and like_count = #{likeCount}</if>
+            <if test="createdAt != null "> and created_at = #{createdAt}</if>
+            <if test="updatedAt != null "> and updated_at = #{updatedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnDesignSchemesById" parameterType="Long" resultMap="DsgnDesignSchemesResult">
+        <include refid="selectDsgnDesignSchemesVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnDesignSchemes" parameterType="DsgnDesignSchemes" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_design_schemes
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">title,</if>
+            <if test="tagline != null">tagline,</if>
+            <if test="price != null">price,</if>
+            <if test="styleId != null">style_id,</if>
+            <if test="spaceType != null">space_type,</if>
+            <if test="recommendedArea != null">recommended_area,</if>
+            <if test="budgetRange != null">budget_range,</if>
+            <if test="mainImageUrl != null">main_image_url,</if>
+            <if test="previewImages != null">preview_images,</if>
+            <if test="colorSchemeDescription != null">color_scheme_description,</if>
+            <if test="designConcept != null">design_concept,</if>
+            <if test="features != null">features,</if>
+            <if test="designerId != null">designer_id,</if>
+            <if test="status != null">status,</if>
+            <if test="publishDate != null">publish_date,</if>
+            <if test="viewCount != null">view_count,</if>
+            <if test="likeCount != null">like_count,</if>
+            <if test="createdAt != null">created_at,</if>
+            <if test="updatedAt != null">updated_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="tagline != null">#{tagline},</if>
+            <if test="price != null">#{price},</if>
+            <if test="styleId != null">#{styleId},</if>
+            <if test="spaceType != null">#{spaceType},</if>
+            <if test="recommendedArea != null">#{recommendedArea},</if>
+            <if test="budgetRange != null">#{budgetRange},</if>
+            <if test="mainImageUrl != null">#{mainImageUrl},</if>
+            <if test="previewImages != null">#{previewImages},</if>
+            <if test="colorSchemeDescription != null">#{colorSchemeDescription},</if>
+            <if test="designConcept != null">#{designConcept},</if>
+            <if test="features != null">#{features},</if>
+            <if test="designerId != null">#{designerId},</if>
+            <if test="status != null">#{status},</if>
+            <if test="publishDate != null">#{publishDate},</if>
+            <if test="viewCount != null">#{viewCount},</if>
+            <if test="likeCount != null">#{likeCount},</if>
+            <if test="createdAt != null">#{createdAt},</if>
+            <if test="updatedAt != null">#{updatedAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnDesignSchemes" parameterType="DsgnDesignSchemes">
+        update dsgn_design_schemes
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="tagline != null">tagline = #{tagline},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="styleId != null">style_id = #{styleId},</if>
+            <if test="spaceType != null">space_type = #{spaceType},</if>
+            <if test="recommendedArea != null">recommended_area = #{recommendedArea},</if>
+            <if test="budgetRange != null">budget_range = #{budgetRange},</if>
+            <if test="mainImageUrl != null">main_image_url = #{mainImageUrl},</if>
+            <if test="previewImages != null">preview_images = #{previewImages},</if>
+            <if test="colorSchemeDescription != null">color_scheme_description = #{colorSchemeDescription},</if>
+            <if test="designConcept != null">design_concept = #{designConcept},</if>
+            <if test="features != null">features = #{features},</if>
+            <if test="designerId != null">designer_id = #{designerId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="publishDate != null">publish_date = #{publishDate},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="likeCount != null">like_count = #{likeCount},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnDesignSchemesById" parameterType="Long">
+        delete from dsgn_design_schemes where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnDesignSchemesByIds" parameterType="String">
+        delete from dsgn_design_schemes where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.DsgnPreferencesMapper">
+    
+    <resultMap type="DsgnPreferences" id="DsgnPreferencesResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="colorIds"    column="color_ids"    />
+        <result property="materialIds"    column="material_ids"    />
+        <result property="styleIds"    column="style_ids"    />
+        <result property="createdAt"    column="created_at"    />
+        <result property="updatedAt"    column="updated_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnPreferencesVo">
+        select id, user_id, color_ids, material_ids, style_ids, created_at, updated_at from dsgn_preferences
+    </sql>
+
+    <select id="selectDsgnPreferencesList" parameterType="DsgnPreferences" resultMap="DsgnPreferencesResult">
+        <include refid="selectDsgnPreferencesVo"/>
+        <where>  
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="colorIds != null  and colorIds != ''"> and color_ids = #{colorIds}</if>
+            <if test="materialIds != null  and materialIds != ''"> and material_ids = #{materialIds}</if>
+            <if test="styleIds != null  and styleIds != ''"> and style_ids = #{styleIds}</if>
+            <if test="createdAt != null "> and created_at = #{createdAt}</if>
+            <if test="updatedAt != null "> and updated_at = #{updatedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnPreferencesById" parameterType="Long" resultMap="DsgnPreferencesResult">
+        <include refid="selectDsgnPreferencesVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnPreferences" parameterType="DsgnPreferences" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_preferences
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="colorIds != null">color_ids,</if>
+            <if test="materialIds != null">material_ids,</if>
+            <if test="styleIds != null">style_ids,</if>
+            <if test="createdAt != null">created_at,</if>
+            <if test="updatedAt != null">updated_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="colorIds != null">#{colorIds},</if>
+            <if test="materialIds != null">#{materialIds},</if>
+            <if test="styleIds != null">#{styleIds},</if>
+            <if test="createdAt != null">#{createdAt},</if>
+            <if test="updatedAt != null">#{updatedAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnPreferences" parameterType="DsgnPreferences">
+        update dsgn_preferences
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="colorIds != null">color_ids = #{colorIds},</if>
+            <if test="materialIds != null">material_ids = #{materialIds},</if>
+            <if test="styleIds != null">style_ids = #{styleIds},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnPreferencesById" parameterType="Long">
+        delete from dsgn_preferences where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnPreferencesByIds" parameterType="String">
+        delete from dsgn_preferences where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
