@@ -1,37 +1,37 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="组号" prop="groupId">
+      <el-form-item label="色彩名称" prop="name">
         <el-input
-          v-model="queryParams.groupId"
-          placeholder="请输入组号"
+          v-model="queryParams.name"
+          placeholder="请输入色彩名称"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="名称" prop="groupName">
+      <el-form-item label="色彩十六进制代码" prop="hexCode">
         <el-input
-          v-model="queryParams.groupName"
-          placeholder="请输入名称"
+          v-model="queryParams.hexCode"
+          placeholder="请输入色彩十六进制代码"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="所属地区" prop="region">
-        <el-input
-          v-model="queryParams.region"
-          placeholder="请输入所属地区"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+      <el-form-item label="创建时间" prop="createdAt">
+        <el-date-picker clearable
+          v-model="queryParams.createdAt"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择创建时间">
+        </el-date-picker>
       </el-form-item>
-      <el-form-item label="成员数量" prop="memberNumber">
-        <el-input
-          v-model="queryParams.memberNumber"
-          placeholder="请输入成员数量"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+      <el-form-item label="更新时间" prop="updatedAt">
+        <el-date-picker clearable
+          v-model="queryParams.updatedAt"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择更新时间">
+        </el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -47,7 +47,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:group:add']"
+          v-hasPermi="['system:colors:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -58,7 +58,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['system:group:edit']"
+          v-hasPermi="['system:colors:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -69,7 +69,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['system:group:remove']"
+          v-hasPermi="['system:colors:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -79,19 +79,27 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['system:group:export']"
+          v-hasPermi="['system:colors:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="groupList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="colorsList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="id" />
-      <el-table-column label="组号" align="center" prop="groupId" />
-      <el-table-column label="名称" align="center" prop="groupName" />
-      <el-table-column label="所属地区" align="center" prop="region" />
-      <el-table-column label="成员数量" align="center" prop="memberNumber" />
+      <el-table-column label="色彩ID" align="center" prop="id" />
+      <el-table-column label="色彩名称" align="center" prop="name" />
+      <el-table-column label="色彩十六进制代码" align="center" prop="hexCode" />
+      <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.createdAt, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.updatedAt, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -99,14 +107,14 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:group:edit']"
+            v-hasPermi="['system:colors:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:group:remove']"
+            v-hasPermi="['system:colors:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -120,21 +128,31 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改学习小组信息对话框 -->
+    <!-- 添加或修改色彩对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="组号" prop="groupId">
-          <el-input v-model="form.groupId" placeholder="请输入组号" />
+        <el-form-item label="色彩名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入色彩名称" />
         </el-form-item>
-        <el-form-item label="名称" prop="groupName">
-          <el-input v-model="form.groupName" placeholder="请输入名称" />
+        <el-form-item label="色彩十六进制代码" prop="hexCode">
+          <el-input v-model="form.hexCode" placeholder="请输入色彩十六进制代码" />
         </el-form-item>
-        <el-form-item label="所属地区" prop="region">
-          <el-input v-model="form.region" placeholder="请输入所属地区" />
+        <el-form-item label="创建时间" prop="createdAt">
+          <el-date-picker clearable
+            v-model="form.createdAt"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择创建时间">
+          </el-date-picker>
         </el-form-item>
-<!--        <el-form-item label="成员数量" prop="memberNumber">-->
-<!--          <el-input v-model="form.memberNumber" placeholder="请输入成员数量" />-->
-<!--        </el-form-item>-->
+        <el-form-item label="更新时间" prop="updatedAt">
+          <el-date-picker clearable
+            v-model="form.updatedAt"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择更新时间">
+          </el-date-picker>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -145,10 +163,10 @@
 </template>
 
 <script>
-import { listGroup, getGroup, delGroup, addGroup, updateGroup } from "@/api/system/group";
+import { listColors, getColors, delColors, addColors, updateColors } from "@/api/dsgn/colors";
 
 export default {
-  name: "Group",
+  name: "Colors",
   data() {
     return {
       // 遮罩层
@@ -163,8 +181,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 学习小组信息表格数据
-      groupList: [],
+      // 色彩表格数据
+      colorsList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -173,27 +191,21 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        groupId: null,
-        groupName: null,
-        region: null,
-        memberNumber: null
+        name: null,
+        hexCode: null,
+        createdAt: null,
+        updatedAt: null
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        groupId: [
-          { required: true, message: "组号不能为空", trigger: "blur" }
+        name: [
+          { required: true, message: "色彩名称不能为空", trigger: "blur" }
         ],
-        groupName: [
-          { required: true, message: "名称不能为空", trigger: "blur" }
+        hexCode: [
+          { required: true, message: "色彩十六进制代码不能为空", trigger: "blur" }
         ],
-        region: [
-          { required: true, message: "所属地区不能为空", trigger: "blur" }
-        ],
-        memberNumber: [
-          { required: true, message: "成员数量不能为空", trigger: "blur" }
-        ]
       }
     };
   },
@@ -201,11 +213,11 @@ export default {
     this.getList();
   },
   methods: {
-    /** 查询学习小组信息列表 */
+    /** 查询色彩列表 */
     getList() {
       this.loading = true;
-      listGroup(this.queryParams).then(response => {
-        this.groupList = response.rows;
+      listColors(this.queryParams).then(response => {
+        this.colorsList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -219,10 +231,10 @@ export default {
     reset() {
       this.form = {
         id: null,
-        groupId: null,
-        groupName: null,
-        region: null,
-        memberNumber: null
+        name: null,
+        hexCode: null,
+        createdAt: null,
+        updatedAt: null
       };
       this.resetForm("form");
     },
@@ -246,16 +258,16 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加学习小组信息";
+      this.title = "添加色彩";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
       const id = row.id || this.ids
-      getGroup(id).then(response => {
+      getColors(id).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改学习小组信息";
+        this.title = "修改色彩";
       });
     },
     /** 提交按钮 */
@@ -263,13 +275,13 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.id != null) {
-            updateGroup(this.form).then(response => {
+            updateColors(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addGroup(this.form).then(response => {
+            addColors(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -281,8 +293,8 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除学习小组信息编号为"' + ids + '"的数据项？').then(function() {
-        return delGroup(ids);
+      this.$modal.confirm('是否确认删除色彩编号为"' + ids + '"的数据项？').then(function() {
+        return delColors(ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
@@ -290,9 +302,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/group/export', {
+      this.download('system/colors/export', {
         ...this.queryParams
-      }, `group_${new Date().getTime()}.xlsx`)
+      }, `colors_${new Date().getTime()}.xlsx`)
     }
   }
 };

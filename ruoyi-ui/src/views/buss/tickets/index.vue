@@ -1,45 +1,37 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="工号" prop="employeeId">
+      <el-form-item label="用户ID" prop="userId">
         <el-input
-          v-model="queryParams.employeeId"
-          placeholder="请输入工号"
+          v-model="queryParams.userId"
+          placeholder="请输入用户ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="年龄" prop="age">
+      <el-form-item label="主题" prop="subject">
         <el-input
-          v-model="queryParams.age"
-          placeholder="请输入年龄"
+          v-model="queryParams.subject"
+          placeholder="请输入主题"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="姓名" prop="name">
-        <el-input
-          v-model="queryParams.name"
-          placeholder="请输入姓名"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+      <el-form-item label="创建时间" prop="createdAt">
+        <el-date-picker clearable
+          v-model="queryParams.createdAt"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择创建时间">
+        </el-date-picker>
       </el-form-item>
-      <el-form-item label="职称" prop="title">
-        <el-input
-          v-model="queryParams.title"
-          placeholder="请输入职称"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="专长" prop="speciality">
-        <el-input
-          v-model="queryParams.speciality"
-          placeholder="请输入专长"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+      <el-form-item label="更新时间" prop="updatedAt">
+        <el-date-picker clearable
+          v-model="queryParams.updatedAt"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择更新时间">
+        </el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -55,7 +47,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:technician:add']"
+          v-hasPermi="['system:tickets:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -66,7 +58,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['system:technician:edit']"
+          v-hasPermi="['system:tickets:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -77,7 +69,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['system:technician:remove']"
+          v-hasPermi="['system:tickets:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -87,25 +79,30 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['system:technician:export']"
+          v-hasPermi="['system:tickets:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="technicianList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="ticketsList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="id" />
-      <el-table-column label="工号" align="center" prop="employeeId" />
-      <el-table-column label="性别" align="center" prop="gender">
+      <el-table-column label="工单ID" align="center" prop="id" />
+      <el-table-column label="用户ID" align="center" prop="userId" />
+      <el-table-column label="主题" align="center" prop="subject" />
+      <el-table-column label="问题描述" align="center" prop="description" />
+      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="优先级" align="center" prop="priority" />
+      <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
         <template slot-scope="scope">
-          {{ scope.row.gender === '0' ? '男' : '女' }}
+          <span>{{ parseTime(scope.row.createdAt, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="年龄" align="center" prop="age" />
-      <el-table-column label="姓名" align="center" prop="name" />
-      <el-table-column label="职称" align="center" prop="title" />
-      <el-table-column label="专长" align="center" prop="speciality" />
+      <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.updatedAt, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -113,14 +110,14 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:technician:edit']"
+            v-hasPermi="['system:tickets:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:technician:remove']"
+            v-hasPermi="['system:tickets:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -134,32 +131,33 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改技术员信息对话框 -->
+    <!-- 添加或修改工单对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="工号" prop="employeeId">
-          <el-input v-model="form.employeeId" placeholder="请输入工号" />
+        <el-form-item label="用户ID" prop="userId">
+          <el-input v-model="form.userId" placeholder="请输入用户ID" />
         </el-form-item>
-        <el-form-item label="性别" prop="gender">
-          <el-radio-group v-model="form.gender">
-            <el-radio label="0">男</el-radio>
-            <el-radio label="1">女</el-radio>
-          </el-radio-group>
+        <el-form-item label="主题" prop="subject">
+          <el-input v-model="form.subject" placeholder="请输入主题" />
         </el-form-item>
-        <el-form-item label="年龄" prop="age">
-          <el-input v-model="form.age" placeholder="请输入年龄" />
+        <el-form-item label="问题描述" prop="description">
+          <el-input v-model="form.description" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="form.name" placeholder="请输入姓名" />
+        <el-form-item label="创建时间" prop="createdAt">
+          <el-date-picker clearable
+            v-model="form.createdAt"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择创建时间">
+          </el-date-picker>
         </el-form-item>
-        <el-form-item label="职称" prop="title">
-          <el-input v-model="form.title" placeholder="请输入职称" />
-        </el-form-item>
-        <el-form-item label="专长" prop="speciality">
-          <el-input v-model="form.speciality" placeholder="请输入专长" />
-        </el-form-item>
-        <el-form-item label="密码" prop="password" v-if="!form.id">
-          <el-input v-model="form.password" type="password" placeholder="请输入密码" />
+        <el-form-item label="更新时间" prop="updatedAt">
+          <el-date-picker clearable
+            v-model="form.updatedAt"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择更新时间">
+          </el-date-picker>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -171,10 +169,10 @@
 </template>
 
 <script>
-import { listTechnician, getTechnician, delTechnician, addTechnician, updateTechnician } from "@/api/system/technician";
+import { listTickets, getTickets, delTickets, addTickets, updateTickets } from "@/api/dsgn/tickets";
 
 export default {
-  name: "Technician",
+  name: "Tickets",
   data() {
     return {
       // 遮罩层
@@ -189,8 +187,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 技术员信息表格数据
-      technicianList: [],
+      // 工单表格数据
+      ticketsList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -199,42 +197,27 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        employeeId: null,
-        gender: null,
-        age: null,
-        name: null,
-        title: null,
-        speciality: null
+        userId: null,
+        subject: null,
+        description: null,
+        status: null,
+        priority: null,
+        createdAt: null,
+        updatedAt: null
       },
       // 表单参数
-      form: {
-        id: null,
-        employeeId: null,
-        gender: "0",
-        age: null,
-        name: null,
-        title: null,
-        speciality: null,
-        password: null
-      },
+      form: {},
       // 表单校验
       rules: {
-        employeeId: [
-          { required: true, message: "工号不能为空", trigger: "blur" }
+        userId: [
+          { required: true, message: "用户ID不能为空", trigger: "blur" }
         ],
-        gender: [
-          { required: true, message: "性别不能为空", trigger: "blur" }
+        subject: [
+          { required: true, message: "主题不能为空", trigger: "blur" }
         ],
-        age: [
-          { required: true, message: "年龄不能为空", trigger: "blur" }
+        description: [
+          { required: true, message: "问题描述不能为空", trigger: "blur" }
         ],
-        name: [
-          { required: true, message: "姓名不能为空", trigger: "blur" }
-        ],
-        password: [
-          { required: true, message: "密码不能为空", trigger: "blur" },
-          { min: 6, max: 20, message: '密码长度必须在 6 到 20 个字符之间', trigger: 'blur' }
-        ]
       }
     };
   },
@@ -242,11 +225,11 @@ export default {
     this.getList();
   },
   methods: {
-    /** 查询技术员信息列表 */
+    /** 查询工单列表 */
     getList() {
       this.loading = true;
-      listTechnician(this.queryParams).then(response => {
-        this.technicianList = response.rows;
+      listTickets(this.queryParams).then(response => {
+        this.ticketsList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -260,13 +243,13 @@ export default {
     reset() {
       this.form = {
         id: null,
-        employeeId: null,
-        gender: "0",
-        age: null,
-        name: null,
-        title: null,
-        speciality: null,
-        password: null
+        userId: null,
+        subject: null,
+        description: null,
+        status: null,
+        priority: null,
+        createdAt: null,
+        updatedAt: null
       };
       this.resetForm("form");
     },
@@ -290,17 +273,16 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加技术员信息";
+      this.title = "添加工单";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
       const id = row.id || this.ids
-      getTechnician(id).then(response => {
+      getTickets(id).then(response => {
         this.form = response.data;
-        this.form.password = undefined;  // 确保编辑时不显示密码
         this.open = true;
-        this.title = "修改技术员信息";
+        this.title = "修改工单";
       });
     },
     /** 提交按钮 */
@@ -308,13 +290,13 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.id != null) {
-            updateTechnician(this.form).then(response => {
+            updateTickets(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addTechnician(this.form).then(response => {
+            addTickets(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -326,8 +308,8 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除技术员信息编号为"' + ids + '"的数据项？').then(function() {
-        return delTechnician(ids);
+      this.$modal.confirm('是否确认删除工单编号为"' + ids + '"的数据项？').then(function() {
+        return delTickets(ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
@@ -335,9 +317,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/technician/export', {
+      this.download('system/tickets/export', {
         ...this.queryParams
-      }, `technician_${new Date().getTime()}.xlsx`)
+      }, `tickets_${new Date().getTime()}.xlsx`)
     }
   }
 };

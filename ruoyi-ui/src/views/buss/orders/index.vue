@@ -1,39 +1,61 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="学号" prop="studentId">
+      <el-form-item label="用户ID" prop="userId">
         <el-input
-          v-model="queryParams.studentId"
-          placeholder="请输入学号"
+          v-model="queryParams.userId"
+          placeholder="请输入用户ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="年龄" prop="age">
+      <el-form-item label="设计方案ID" prop="designSchemeId">
         <el-input
-          v-model="queryParams.age"
-          placeholder="请输入年龄"
+          v-model="queryParams.designSchemeId"
+          placeholder="请输入设计方案ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="姓名" prop="name">
+      <el-form-item label="订单编号" prop="orderNumber">
         <el-input
-          v-model="queryParams.name"
-          placeholder="请输入姓名"
+          v-model="queryParams.orderNumber"
+          placeholder="请输入订单编号"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="所属学习小组" prop="groupId">
-        <el-select v-model="queryParams.groupId" placeholder="请选择所属学习小组" clearable>
-          <el-option
-            v-for="item in groupList"
-            :key="item.groupId"
-            :label="item.groupName"
-            :value="item.groupId"
-          />
-        </el-select>
+      <el-form-item label="订单金额" prop="amount">
+        <el-input
+          v-model="queryParams.amount"
+          placeholder="请输入订单金额"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="支付方式" prop="paymentMethod">
+        <el-input
+          v-model="queryParams.paymentMethod"
+          placeholder="请输入支付方式"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="创建时间" prop="createdAt">
+        <el-date-picker clearable
+          v-model="queryParams.createdAt"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择创建时间">
+        </el-date-picker>
+      </el-form-item>
+      <el-form-item label="更新时间" prop="updatedAt">
+        <el-date-picker clearable
+          v-model="queryParams.updatedAt"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择更新时间">
+        </el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -49,7 +71,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:farmer:add']"
+          v-hasPermi="['system:orders:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -60,7 +82,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['system:farmer:edit']"
+          v-hasPermi="['system:orders:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -71,7 +93,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['system:farmer:remove']"
+          v-hasPermi="['system:orders:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -81,26 +103,29 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['system:farmer:export']"
+          v-hasPermi="['system:orders:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="farmerList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="ordersList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="id" />
-      <el-table-column label="学号" align="center" prop="studentId" />
-      <el-table-column label="性别" align="center" prop="gender">
+      <el-table-column label="订单ID" align="center" prop="id" />
+      <el-table-column label="用户ID" align="center" prop="userId" />
+      <el-table-column label="设计方案ID" align="center" prop="designSchemeId" />
+      <el-table-column label="订单编号" align="center" prop="orderNumber" />
+      <el-table-column label="订单金额" align="center" prop="amount" />
+      <el-table-column label="订单状态" align="center" prop="status" />
+      <el-table-column label="支付方式" align="center" prop="paymentMethod" />
+      <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
         <template slot-scope="scope">
-          {{ scope.row.gender === '0' ? '男' : '女' }}
+          <span>{{ parseTime(scope.row.createdAt, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="年龄" align="center" prop="age" />
-      <el-table-column label="姓名" align="center" prop="name" />
-      <el-table-column label="所属学习小组" align="center" prop="groupId">
+      <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
         <template slot-scope="scope">
-          {{ getGroupName(scope.row.groupId) }}
+          <span>{{ parseTime(scope.row.updatedAt, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -110,14 +135,14 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:farmer:edit']"
+            v-hasPermi="['system:orders:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:farmer:remove']"
+            v-hasPermi="['system:orders:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -131,36 +156,39 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改农民信息对话框 -->
+    <!-- 添加或修改订单对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="学号" prop="studentId">
-          <el-input v-model="form.studentId" placeholder="请输入学号" />
+        <el-form-item label="用户ID" prop="userId">
+          <el-input v-model="form.userId" placeholder="请输入用户ID" />
         </el-form-item>
-        <el-form-item label="性别" prop="gender">
-          <el-radio-group v-model="form.gender">
-            <el-radio label="0">男</el-radio>
-            <el-radio label="1">女</el-radio>
-          </el-radio-group>
+        <el-form-item label="设计方案ID" prop="designSchemeId">
+          <el-input v-model="form.designSchemeId" placeholder="请输入设计方案ID" />
         </el-form-item>
-        <el-form-item label="年龄" prop="age">
-          <el-input v-model="form.age" placeholder="请输入年龄" />
+        <el-form-item label="订单编号" prop="orderNumber">
+          <el-input v-model="form.orderNumber" placeholder="请输入订单编号" />
         </el-form-item>
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="form.name" placeholder="请输入姓名" />
+        <el-form-item label="订单金额" prop="amount">
+          <el-input v-model="form.amount" placeholder="请输入订单金额" />
         </el-form-item>
-        <el-form-item label="所属学习小组" prop="groupId">
-          <el-select v-model="form.groupId" placeholder="请选择所属学习小组">
-            <el-option
-              v-for="item in groupList"
-              :key="item.groupId"
-              :label="item.groupName"
-              :value="item.groupId"
-            />
-          </el-select>
+        <el-form-item label="支付方式" prop="paymentMethod">
+          <el-input v-model="form.paymentMethod" placeholder="请输入支付方式" />
         </el-form-item>
-        <el-form-item label="密码" prop="password" v-if="!form.id">
-          <el-input v-model="form.password" type="password" placeholder="请输入密码" />
+        <el-form-item label="创建时间" prop="createdAt">
+          <el-date-picker clearable
+            v-model="form.createdAt"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择创建时间">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="更新时间" prop="updatedAt">
+          <el-date-picker clearable
+            v-model="form.updatedAt"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择更新时间">
+          </el-date-picker>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -172,11 +200,10 @@
 </template>
 
 <script>
-import { listFarmer, getFarmer, delFarmer, addFarmer, updateFarmer } from "@/api/system/farmer";
-import { listGroupAll } from "@/api/system/group";
+import { listOrders, getOrders, delOrders, addOrders, updateOrders } from "@/api/dsgn/orders";
 
 export default {
-  name: "Farmer",
+  name: "Orders",
   data() {
     return {
       // 遮罩层
@@ -191,10 +218,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 农民信息表格数据
-      farmerList: [],
-      // 学习小组列表
-      groupList: [],
+      // 订单表格数据
+      ordersList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -203,70 +228,45 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        studentId: null,
-        gender: null,
-        age: null,
-        name: null,
-        groupId: null
+        userId: null,
+        designSchemeId: null,
+        orderNumber: null,
+        amount: null,
+        status: null,
+        paymentMethod: null,
+        createdAt: null,
+        updatedAt: null
       },
       // 表单参数
-      form: {
-        id: null,
-        studentId: null,
-        gender: '0',// 默认男
-        age: null,
-        name: null,
-        groupId: null,
-        password: null
-      },
+      form: {},
       // 表单校验
       rules: {
-        studentId: [
-          { required: true, message: "学号不能为空", trigger: "blur" }
+        userId: [
+          { required: true, message: "用户ID不能为空", trigger: "blur" }
         ],
-        gender: [
-          { required: true, message: "性别不能为空", trigger: "change" }
+        designSchemeId: [
+          { required: true, message: "设计方案ID不能为空", trigger: "blur" }
         ],
-        age: [
-          { required: true, message: "年龄不能为空", trigger: "blur" }
+        orderNumber: [
+          { required: true, message: "订单编号不能为空", trigger: "blur" }
         ],
-        name: [
-          { required: true, message: "姓名不能为空", trigger: "blur" }
+        amount: [
+          { required: true, message: "订单金额不能为空", trigger: "blur" }
         ],
-        groupId: [
-          { required: true, message: "所属学习小组不能为空", trigger: "change" }
-        ],
-        password: [
-          { required: true, message: "密码不能为空", trigger: "blur" },
-          { min: 6, max: 20, message: '密码长度必须在 6 到 20 个字符之间', trigger: 'blur' }
-        ]
       }
     };
   },
   created() {
     this.getList();
-    this.getGroupList();
   },
   methods: {
-    /** 查询农民信息列表 */
+    /** 查询订单列表 */
     getList() {
       this.loading = true;
-      listFarmer(this.queryParams).then(response => {
-        this.farmerList = response.rows;
+      listOrders(this.queryParams).then(response => {
+        this.ordersList = response.rows;
         this.total = response.total;
         this.loading = false;
-      });
-    },
-    /** 查询学习小组列表 */
-    getGroupList() {
-      listGroupAll().then(response => {
-        if (response.code === 200) {
-          this.groupList = response.rows;
-        } else {
-          this.$message.error(response.msg || "获取学习小组列表失败");
-        }
-      }).catch(() => {
-        this.$message.error("获取学习小组列表失败");
       });
     },
     // 取消按钮
@@ -278,12 +278,14 @@ export default {
     reset() {
       this.form = {
         id: null,
-        studentId: null,
-        gender: '0',
-        age: null,
-        name: null,
-        groupId: null,
-        password: null
+        userId: null,
+        designSchemeId: null,
+        orderNumber: null,
+        amount: null,
+        status: null,
+        paymentMethod: null,
+        createdAt: null,
+        updatedAt: null
       };
       this.resetForm("form");
     },
@@ -307,17 +309,16 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加农民信息";
+      this.title = "添加订单";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
       const id = row.id || this.ids
-      getFarmer(id).then(response => {
+      getOrders(id).then(response => {
         this.form = response.data;
-        this.form.password = undefined;  // 确保编辑时不显示密码
         this.open = true;
-        this.title = "修改农民信息";
+        this.title = "修改订单";
       });
     },
     /** 提交按钮 */
@@ -325,13 +326,13 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.id != null) {
-            updateFarmer(this.form).then(response => {
+            updateOrders(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addFarmer(this.form).then(response => {
+            addOrders(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -343,8 +344,8 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除农民信息编号为"' + ids + '"的数据项？').then(function() {
-        return delFarmer(ids);
+      this.$modal.confirm('是否确认删除订单编号为"' + ids + '"的数据项？').then(function() {
+        return delOrders(ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
@@ -352,14 +353,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/farmer/export', {
+      this.download('system/orders/export', {
         ...this.queryParams
-      }, `farmer_${new Date().getTime()}.xlsx`)
-    },
-    /** 获取学习小组名称 */
-    getGroupName(groupId) {
-      const group = this.groupList.find(g => g.groupId === groupId);
-      return group ? group.groupName : groupId;
+      }, `orders_${new Date().getTime()}.xlsx`)
     }
   }
 };

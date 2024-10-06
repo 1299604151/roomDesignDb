@@ -1,36 +1,28 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="工号" prop="employeeId">
+      <el-form-item label="用户ID" prop="userId">
         <el-input
-          v-model="queryParams.employeeId"
-          placeholder="请输入工号"
+          v-model="queryParams.userId"
+          placeholder="请输入用户ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="课程编号" prop="courseId">
+      <el-form-item label="设计方案ID" prop="designSchemeId">
         <el-input
-          v-model="queryParams.courseId"
-          placeholder="请输入课程编号"
+          v-model="queryParams.designSchemeId"
+          placeholder="请输入设计方案ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="场地名称" prop="venueId">
-        <el-input
-          v-model="queryParams.venueId"
-          placeholder="请输入场地名称"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="上课时间" prop="classTime">
+      <el-form-item label="浏览时间" prop="viewedAt">
         <el-date-picker clearable
-          v-model="queryParams.classTime"
+          v-model="queryParams.viewedAt"
           type="date"
-          value-format="yyyy-MM-dd HH:mm:ss"
-          placeholder="请选择上课时间">
+          value-format="yyyy-MM-dd"
+          placeholder="请选择浏览时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -47,7 +39,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:record:add']"
+          v-hasPermi="['system:history:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -58,7 +50,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['system:record:edit']"
+          v-hasPermi="['system:history:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -69,7 +61,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['system:record:remove']"
+          v-hasPermi="['system:history:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -79,21 +71,20 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['system:record:export']"
+          v-hasPermi="['system:history:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="recordList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="historyList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="id" />
-      <el-table-column label="工号" align="center" prop="employeeId" />
-      <el-table-column label="课程编号" align="center" prop="courseId" />
-      <el-table-column label="场地名称" align="center" prop="venueId" />
-      <el-table-column label="上课时间" align="center" prop="classTime" width="180">
+      <el-table-column label="浏览历史ID" align="center" prop="id" />
+      <el-table-column label="用户ID" align="center" prop="userId" />
+      <el-table-column label="设计方案ID" align="center" prop="designSchemeId" />
+      <el-table-column label="浏览时间" align="center" prop="viewedAt" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.classTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.viewedAt, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -103,14 +94,14 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:record:edit']"
+            v-hasPermi="['system:history:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:record:remove']"
+            v-hasPermi="['system:history:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -124,24 +115,21 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改授课信息对话框 -->
+    <!-- 添加或修改用户浏览历史对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="工号" prop="employeeId">
-          <el-input v-model="form.employeeId" placeholder="请输入工号" />
+        <el-form-item label="用户ID" prop="userId">
+          <el-input v-model="form.userId" placeholder="请输入用户ID" />
         </el-form-item>
-        <el-form-item label="课程编号" prop="courseId">
-          <el-input v-model="form.courseId" placeholder="请输入课程编号" />
+        <el-form-item label="设计方案ID" prop="designSchemeId">
+          <el-input v-model="form.designSchemeId" placeholder="请输入设计方案ID" />
         </el-form-item>
-        <el-form-item label="场地名称" prop="venueId">
-          <el-input v-model="form.venueId" placeholder="请输入场地名称" />
-        </el-form-item>
-        <el-form-item label="上课时间" prop="classTime">
+        <el-form-item label="浏览时间" prop="viewedAt">
           <el-date-picker clearable
-            v-model="form.classTime"
+            v-model="form.viewedAt"
             type="date"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            placeholder="请选择上课时间">
+            value-format="yyyy-MM-dd"
+            placeholder="请选择浏览时间">
           </el-date-picker>
         </el-form-item>
       </el-form>
@@ -154,10 +142,10 @@
 </template>
 
 <script>
-import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api/system/record";
+import { listHistory, getHistory, delHistory, addHistory, updateHistory } from "@/api/dsgn/history";
 
 export default {
-  name: "Record",
+  name: "History",
   data() {
     return {
       // 遮罩层
@@ -172,8 +160,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 授课信息表格数据
-      recordList: [],
+      // 用户浏览历史表格数据
+      historyList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -182,23 +170,19 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        employeeId: null,
-        courseId: null,
-        venueId: null,
-        classTime: null
+        userId: null,
+        designSchemeId: null,
+        viewedAt: null
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        employeeId: [
-          { required: true, message: "工号不能为空", trigger: "blur" }
+        userId: [
+          { required: true, message: "用户ID不能为空", trigger: "blur" }
         ],
-        courseId: [
-          { required: true, message: "课程编号不能为空", trigger: "blur" }
-        ],
-        venueId: [
-          { required: true, message: "场地名称不能为空", trigger: "blur" }
+        designSchemeId: [
+          { required: true, message: "设计方案ID不能为空", trigger: "blur" }
         ],
       }
     };
@@ -207,11 +191,11 @@ export default {
     this.getList();
   },
   methods: {
-    /** 查询授课信息列表 */
+    /** 查询用户浏览历史列表 */
     getList() {
       this.loading = true;
-      listRecord(this.queryParams).then(response => {
-        this.recordList = response.rows;
+      listHistory(this.queryParams).then(response => {
+        this.historyList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -225,10 +209,9 @@ export default {
     reset() {
       this.form = {
         id: null,
-        employeeId: null,
-        courseId: null,
-        venueId: null,
-        classTime: null
+        userId: null,
+        designSchemeId: null,
+        viewedAt: null
       };
       this.resetForm("form");
     },
@@ -252,16 +235,16 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加授课信息";
+      this.title = "添加用户浏览历史";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
       const id = row.id || this.ids
-      getRecord(id).then(response => {
+      getHistory(id).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改授课信息";
+        this.title = "修改用户浏览历史";
       });
     },
     /** 提交按钮 */
@@ -269,13 +252,13 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.id != null) {
-            updateRecord(this.form).then(response => {
+            updateHistory(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addRecord(this.form).then(response => {
+            addHistory(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -287,8 +270,8 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除授课信息编号为"' + ids + '"的数据项？').then(function() {
-        return delRecord(ids);
+      this.$modal.confirm('是否确认删除用户浏览历史编号为"' + ids + '"的数据项？').then(function() {
+        return delHistory(ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
@@ -296,9 +279,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/record/export', {
+      this.download('system/history/export', {
         ...this.queryParams
-      }, `record_${new Date().getTime()}.xlsx`)
+      }, `history_${new Date().getTime()}.xlsx`)
     }
   }
 };

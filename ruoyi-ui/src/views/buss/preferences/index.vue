@@ -1,28 +1,28 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="学号" prop="studentId">
+      <el-form-item label="用户ID" prop="userId">
         <el-input
-          v-model="queryParams.studentId"
-          placeholder="请输入学号"
+          v-model="queryParams.userId"
+          placeholder="请输入用户ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="课程编号" prop="courseId">
-        <el-input
-          v-model="queryParams.courseId"
-          placeholder="请输入课程编号"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="上课时间" prop="classTime">
+      <el-form-item label="创建时间" prop="createdAt">
         <el-date-picker clearable
-          v-model="queryParams.classTime"
+          v-model="queryParams.createdAt"
           type="date"
-          value-format="yyyy-MM-dd HH:mm:ss"
-          placeholder="请选择上课时间">
+          value-format="yyyy-MM-dd"
+          placeholder="请选择创建时间">
+        </el-date-picker>
+      </el-form-item>
+      <el-form-item label="更新时间" prop="updatedAt">
+        <el-date-picker clearable
+          v-model="queryParams.updatedAt"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择更新时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -39,7 +39,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:selection:add']"
+          v-hasPermi="['system:preferences:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -50,7 +50,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['system:selection:edit']"
+          v-hasPermi="['system:preferences:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -61,7 +61,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['system:selection:remove']"
+          v-hasPermi="['system:preferences:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -71,20 +71,27 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['system:selection:export']"
+          v-hasPermi="['system:preferences:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="selectionList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="preferencesList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="id" />
-      <el-table-column label="学号" align="center" prop="studentId" />
-      <el-table-column label="课程编号" align="center" prop="courseId" />
-      <el-table-column label="上课时间" align="center" prop="classTime" width="180">
+      <el-table-column label="偏好ID" align="center" prop="id" />
+      <el-table-column label="用户ID" align="center" prop="userId" />
+      <el-table-column label="偏好色彩ID列表，逗号分隔" align="center" prop="colorIds" />
+      <el-table-column label="偏好材料ID列表，逗号分隔" align="center" prop="materialIds" />
+      <el-table-column label="偏好风格ID列表，逗号分隔" align="center" prop="styleIds" />
+      <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.classTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.createdAt, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.updatedAt, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -94,14 +101,14 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:selection:edit']"
+            v-hasPermi="['system:preferences:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:selection:remove']"
+            v-hasPermi="['system:preferences:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -115,21 +122,35 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改选课信息对话框 -->
+    <!-- 添加或修改用户偏好对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="学号" prop="studentId">
-          <el-input v-model="form.studentId" placeholder="请输入学号" />
+        <el-form-item label="用户ID" prop="userId">
+          <el-input v-model="form.userId" placeholder="请输入用户ID" />
         </el-form-item>
-        <el-form-item label="课程编号" prop="courseId">
-          <el-input v-model="form.courseId" placeholder="请输入课程编号" />
+        <el-form-item label="偏好色彩ID列表，逗号分隔" prop="colorIds">
+          <el-input v-model="form.colorIds" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="上课时间" prop="classTime">
+        <el-form-item label="偏好材料ID列表，逗号分隔" prop="materialIds">
+          <el-input v-model="form.materialIds" type="textarea" placeholder="请输入内容" />
+        </el-form-item>
+        <el-form-item label="偏好风格ID列表，逗号分隔" prop="styleIds">
+          <el-input v-model="form.styleIds" type="textarea" placeholder="请输入内容" />
+        </el-form-item>
+        <el-form-item label="创建时间" prop="createdAt">
           <el-date-picker clearable
-            v-model="form.classTime"
+            v-model="form.createdAt"
             type="date"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            placeholder="请选择上课时间">
+            value-format="yyyy-MM-dd"
+            placeholder="请选择创建时间">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="更新时间" prop="updatedAt">
+          <el-date-picker clearable
+            v-model="form.updatedAt"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择更新时间">
           </el-date-picker>
         </el-form-item>
       </el-form>
@@ -142,10 +163,10 @@
 </template>
 
 <script>
-import { listSelection, getSelection, delSelection, addSelection, updateSelection } from "@/api/system/selection";
+import { listPreferences, getPreferences, delPreferences, addPreferences, updatePreferences } from "@/api/dsgn/preferences";
 
 export default {
-  name: "Selection",
+  name: "Preferences",
   data() {
     return {
       // 遮罩层
@@ -160,8 +181,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 选课信息表格数据
-      selectionList: [],
+      // 用户偏好表格数据
+      preferencesList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -170,19 +191,19 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        studentId: null,
-        courseId: null,
-        classTime: null
+        userId: null,
+        colorIds: null,
+        materialIds: null,
+        styleIds: null,
+        createdAt: null,
+        updatedAt: null
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        studentId: [
-          { required: true, message: "学号不能为空", trigger: "blur" }
-        ],
-        courseId: [
-          { required: true, message: "课程编号不能为空", trigger: "blur" }
+        userId: [
+          { required: true, message: "用户ID不能为空", trigger: "blur" }
         ],
       }
     };
@@ -191,11 +212,11 @@ export default {
     this.getList();
   },
   methods: {
-    /** 查询选课信息列表 */
+    /** 查询用户偏好列表 */
     getList() {
       this.loading = true;
-      listSelection(this.queryParams).then(response => {
-        this.selectionList = response.rows;
+      listPreferences(this.queryParams).then(response => {
+        this.preferencesList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -209,9 +230,12 @@ export default {
     reset() {
       this.form = {
         id: null,
-        studentId: null,
-        courseId: null,
-        classTime: null
+        userId: null,
+        colorIds: null,
+        materialIds: null,
+        styleIds: null,
+        createdAt: null,
+        updatedAt: null
       };
       this.resetForm("form");
     },
@@ -235,16 +259,16 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加选课信息";
+      this.title = "添加用户偏好";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
       const id = row.id || this.ids
-      getSelection(id).then(response => {
+      getPreferences(id).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改选课信息";
+        this.title = "修改用户偏好";
       });
     },
     /** 提交按钮 */
@@ -252,13 +276,13 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.id != null) {
-            updateSelection(this.form).then(response => {
+            updatePreferences(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addSelection(this.form).then(response => {
+            addPreferences(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -270,8 +294,8 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除选课信息编号为"' + ids + '"的数据项？').then(function() {
-        return delSelection(ids);
+      this.$modal.confirm('是否确认删除用户偏好编号为"' + ids + '"的数据项？').then(function() {
+        return delPreferences(ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
@@ -279,9 +303,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/selection/export', {
+      this.download('system/preferences/export', {
         ...this.queryParams
-      }, `selection_${new Date().getTime()}.xlsx`)
+      }, `preferences_${new Date().getTime()}.xlsx`)
     }
   }
 };
