@@ -1,10 +1,10 @@
 package com.ruoyi.im.websocket;
 
-import com.ld.poetry.im.http.entity.ImChatUserGroupMessage;
-import com.ld.poetry.im.http.entity.ImChatUserMessage;
-import com.ld.poetry.im.http.service.ImChatUserGroupMessageService;
-import com.ld.poetry.im.http.service.ImChatUserMessageService;
-import com.ld.poetry.utils.mail.MailSendUtil;
+import com.ruoyi.im.http.entity.ImChatUserGroupMessage;
+import com.ruoyi.im.http.entity.ImChatUserMessage;
+import com.ruoyi.im.http.service.ImChatUserGroupMessageService;
+import com.ruoyi.im.http.service.ImChatUserMessageService;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,8 +27,8 @@ public class MessageCache {
     @Autowired
     private ImChatUserGroupMessageService imChatUserGroupMessageService;
 
-    @Autowired
-    private MailSendUtil mailSendUtil;
+//    @Autowired
+//    private MailSendUtil mailSendUtil;
 
     private final List<ImChatUserMessage> userMessage = new ArrayList<>();
 
@@ -45,7 +45,7 @@ public class MessageCache {
         }
 
         try {
-            mailSendUtil.sendImMail(message);
+//            mailSendUtil.sendImMail(message);
         } catch (Exception e) {
             log.error("发送IM邮件失败：", e);
         }

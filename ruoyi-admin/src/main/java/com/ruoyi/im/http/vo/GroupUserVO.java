@@ -13,7 +13,7 @@ public class GroupUserVO {
 
     private Integer groupId;
 
-    private Integer userId;
+    private Long userId;
 
     private String username;
 

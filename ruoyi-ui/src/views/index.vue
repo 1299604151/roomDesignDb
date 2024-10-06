@@ -49,20 +49,20 @@
             <span>系统概况</span>
           </div>
           <div class="stat-content">
-            <el-row>
-              <el-col :span="12">
-                <div class="stat-item">
-                  <div class="stat-number">{{ totalCourses }}</div>
-                  <div class="stat-label">总课程数</div>
-                </div>
-              </el-col>
-              <el-col :span="12">
-                <div class="stat-item">
-                  <div class="stat-number">{{ totalStudents }}</div>
-                  <div class="stat-label">注册学员数</div>
-                </div>
-              </el-col>
-            </el-row>
+<!--            <el-row>-->
+<!--              <el-col :span="12">-->
+<!--                <div class="stat-item">-->
+<!--                  <div class="stat-number">{{ totalCourses }}</div>-->
+<!--                  <div class="stat-label">总课程数</div>-->
+<!--                </div>-->
+<!--              </el-col>-->
+<!--              <el-col :span="12">-->
+<!--                <div class="stat-item">-->
+<!--                  <div class="stat-number">{{ totalStudents }}</div>-->
+<!--                  <div class="stat-label">注册学员数</div>-->
+<!--                </div>-->
+<!--              </el-col>-->
+<!--            </el-row>-->
           </div>
         </el-card>
       </el-col>
@@ -105,29 +105,18 @@
 </template>
 
 <script>
-import {courseAndStudentCount} from "@/api/system/course";
 
 export default {
   name: "Home",
   data() {
     return {
       version: "1.0.0",
-      totalCourses: 50,
-      totalStudents: 500
     };
   },
   created() {
-    this.getSystemStats();
   },
   methods: {
-    // 获取学员数和课程数
-    getSystemStats() {
-      courseAndStudentCount().then(response => {
-        this.totalCourses = response.data.courseCount;
-        this.totalStudents = response.data.studentCount;
-      });
-      // 实现获取系统统计数据的逻辑
-    },
+
     startGuide() {
       // 实现查看使用指南的逻辑
       this.$message.info("正在开发使用指南功能");

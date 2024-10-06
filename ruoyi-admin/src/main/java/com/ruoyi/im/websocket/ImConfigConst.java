@@ -12,7 +12,7 @@ public class ImConfigConst {
     /**
      * 系统消息ID
      */
-    public static final int DEFAULT_SYSTEM_MESSAGE_ID = -1;
+    public static final long DEFAULT_SYSTEM_MESSAGE_ID = -1;
 
     /**
      * 协议名字

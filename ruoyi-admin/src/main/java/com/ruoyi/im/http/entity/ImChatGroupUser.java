@@ -41,7 +41,7 @@ public class ImChatGroupUser implements Serializable {
      * 用户ID
      */
     @TableField("user_id")
-    private Integer userId;
+    private Long userId;
 
     /**
      * 审核用户ID

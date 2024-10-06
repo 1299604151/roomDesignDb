@@ -9,13 +9,20 @@ public class ImMessage {
 
     private String content;
 
-    private Integer fromId;
+    private Long fromId;
 
-    private Integer toId;
+    private Long toId;
 
     private Integer groupId;
 
     private String avatar;
 
     private String username;
+
+
+    /**
+     * 已读 true
+     * 未读  false
+     * */
+    private Boolean messageStatus;
 }

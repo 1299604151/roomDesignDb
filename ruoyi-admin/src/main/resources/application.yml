@@ -44,7 +44,13 @@ user:
     maxRetryCount: 5
     # 密码锁定时间（默认10分钟）
     lockTime: 10
-
+# 表情包
+file:
+  emoji:
+    path: D:\poetry\upload\emoji\
+# im配置
+im:
+  enable: true
 # Spring配置
 spring:
   # 资源信息
@@ -116,6 +122,9 @@ mybatis-plus:
   # 加载全局的配置文件
   configLocation: classpath:mybatis/mybatis-config.xml
 
+
+#前端静态访问路径
+staticPath: /dev-api
 
 
 

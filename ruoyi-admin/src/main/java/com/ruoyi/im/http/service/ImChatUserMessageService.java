@@ -1,7 +1,7 @@
 package com.ruoyi.im.http.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.ld.poetry.im.http.entity.ImChatUserMessage;
+import com.ruoyi.im.http.entity.ImChatUserMessage;
 
 /**
  * <p>

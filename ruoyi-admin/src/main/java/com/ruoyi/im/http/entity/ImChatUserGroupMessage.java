@@ -41,7 +41,7 @@ public class ImChatUserGroupMessage implements Serializable {
      * 发送ID
      */
     @TableField("from_id")
-    private Integer fromId;
+    private Long fromId;
 
     /**
      * 接收ID

@@ -21,6 +21,19 @@ import com.ruoyi.common.utils.file.FileUploadUtils;
 import com.ruoyi.common.utils.file.FileUtils;
 import com.ruoyi.framework.config.ServerConfig;
 
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+
+
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * 通用请求处理
  * 
@@ -37,6 +50,8 @@ public class CommonController
 
     private static final String FILE_DELIMETER = ",";
 
+    @Value("${file.emoji.path}")
+    private String fileStoragePath;
     /**
      * 通用下载请求
      * 
@@ -68,6 +83,50 @@ public class CommonController
             log.error("下载文件失败", e);
         }
     }
+
+
+
+
+    @GetMapping("/preview/{fileName}")
+    public ResponseEntity<Resource> previewFile(@PathVariable String fileName) {
+        try {
+            Path filePath = Paths.get(fileStoragePath).resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                String contentType = determineContentType(fileName);
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (MalformedURLException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    private String determineContentType(String fileName) {
+        // 根据文件扩展名确定内容类型
+        if (fileName.endsWith(".pdf")) {
+            return "application/pdf";
+        } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else if (fileName.endsWith(".png")) {
+            return "image/png";
+        } else if (fileName.endsWith(".txt")) {
+            return "text/plain";
+        }
+        // 添加更多文件类型的判断...
+        return "application/octet-stream";
+    }
+
+    /**
+     * 表情包预览
+     * */
+
 
     /**
      * 通用上传请求（单个）

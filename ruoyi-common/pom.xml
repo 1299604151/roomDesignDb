@@ -11,6 +11,8 @@
 
     <artifactId>ruoyi-common</artifactId>
 
+
+
     <description>
         common通用工具
     </description>
@@ -125,6 +127,9 @@
             <groupId>eu.bitwalker</groupId>
             <artifactId>UserAgentUtils</artifactId>
         </dependency>
+
+        <!--
+        hutool工具-->
 
         <!--
 

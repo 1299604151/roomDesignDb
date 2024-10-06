@@ -114,6 +114,7 @@ public class SecurityConfig
                 requests.antMatchers("/login",
                                 "/register",
                                 "/captchaImage",
+                                "/common/preview/**",
                                 "/system/group/listAll",
                                 "/system/farmer/register",
                                 "/system/technician/register").permitAll()

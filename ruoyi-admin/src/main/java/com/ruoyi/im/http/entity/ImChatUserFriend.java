@@ -35,13 +35,13 @@ public class ImChatUserFriend implements Serializable {
      * 用户ID
      */
     @TableField("user_id")
-    private Integer userId;
+    private Long userId;
 
     /**
      * 好友ID
      */
     @TableField("friend_id")
-    private Integer friendId;
+    private Long friendId;
 
     /**
      * 朋友状态[0:未审核，1:审核通过]

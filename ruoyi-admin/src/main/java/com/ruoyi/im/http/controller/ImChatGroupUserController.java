@@ -4,19 +4,22 @@ package com.ruoyi.im.http.controller;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.ld.poetry.aop.LoginCheck;
-import com.ld.poetry.config.PoetryResult;
-import com.ld.poetry.entity.User;
-import com.ld.poetry.im.http.entity.ImChatGroup;
-import com.ld.poetry.im.http.entity.ImChatGroupUser;
-import com.ld.poetry.im.http.service.ImChatGroupService;
-import com.ld.poetry.im.http.service.ImChatGroupUserService;
-import com.ld.poetry.im.http.vo.GroupUserVO;
-import com.ld.poetry.im.websocket.ImConfigConst;
-import com.ld.poetry.im.websocket.TioUtil;
-import com.ld.poetry.im.websocket.TioWebsocketStarter;
-import com.ld.poetry.utils.CommonQuery;
-import com.ld.poetry.utils.PoetryUtil;
+
+import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.im.http.entity.ImChatGroup;
+import com.ruoyi.im.http.entity.ImChatGroupUser;
+import com.ruoyi.im.http.service.ImChatGroupService;
+import com.ruoyi.im.http.service.ImChatGroupUserService;
+import com.ruoyi.im.http.vo.GroupUserVO;
+import com.ruoyi.im.websocket.ImConfigConst;
+import com.ruoyi.im.websocket.TioUtil;
+import com.ruoyi.im.websocket.TioWebsocketStarter;
+
+
+import com.ruoyi.system.service.ISysUserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -51,31 +54,35 @@ public class ImChatGroupUserController {
     private ImChatGroupUserService imChatGroupUserService;
 
     @Autowired
-    private CommonQuery commonQuery;
+    ISysUserService userService;
+    
 
     /**
      * 申请加群
      */
     @GetMapping("/enterGroup")
-    @LoginCheck
-    public PoetryResult enterGroup(@RequestParam("id") Integer id, @RequestParam(value = "remark", required = false) String remark) {
+    
+    public AjaxResult enterGroup(@RequestParam("id") Integer id, @RequestParam(value = "remark", required = false) String remark) {
         ImChatGroup chatGroup = imChatGroupService.getById(id);
         if (chatGroup == null) {
-            return PoetryResult.fail("群组不存在！");
+            return AjaxResult.error("群组不存在！");
         }
 
         if (chatGroup.getGroupType().intValue() == ImConfigConst.GROUP_TOPIC) {
-            return PoetryResult.fail("话题无需申请！");
+            return AjaxResult.error("话题无需申请！");
         }
+        // 获取当前登录的用户
+        // 获取当前登录用户
+        LoginUser loginUser = SecurityUtils.getLoginUser();
 
-        Integer userId = PoetryUtil.getUserId();
+        Long userId = loginUser.getUserId();
 
         LambdaQueryChainWrapper<ImChatGroupUser> lambdaQuery = imChatGroupUserService.lambdaQuery();
         lambdaQuery.eq(ImChatGroupUser::getGroupId, id);
         lambdaQuery.eq(ImChatGroupUser::getUserId, userId);
         ImChatGroupUser groupUser = lambdaQuery.one();
         if (groupUser != null) {
-            return PoetryResult.fail("重复申请！");
+            return AjaxResult.error("重复申请！");
         }
 
         ImChatGroupUser imChatGroupUser = new ImChatGroupUser();
@@ -96,7 +103,7 @@ public class ImChatGroupUserController {
                 Tio.bindGroup(tioWebsocketStarter.getServerTioConfig(), String.valueOf(userId), String.valueOf(id));
             }
         }
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
     /**
@@ -105,28 +112,30 @@ public class ImChatGroupUserController {
      * 用户状态[-1:审核不通过或者踢出群组，1:审核通过，2:禁言]
      */
     @GetMapping("/changeUserStatus")
-    @LoginCheck
-    public PoetryResult changeUserStatus(@RequestParam("groupId") Integer groupId,
-                                         @RequestParam("userId") Integer userId,
+    
+    public AjaxResult changeUserStatus(@RequestParam("groupId") Integer groupId,
+                                         @RequestParam("userId") Long userId,
                                          @RequestParam("userStatus") Integer userStatus,
                                          @RequestParam("oldUserStatus") Integer oldUserStatus) {
         ImChatGroup chatGroup = imChatGroupService.getById(groupId);
         if (chatGroup == null) {
-            return PoetryResult.fail("群组不存在！");
+            return AjaxResult.error("群组不存在！");
         }
 
         if (chatGroup.getGroupType().intValue() == ImConfigConst.GROUP_TOPIC) {
-            return PoetryResult.fail("话题无需操作！");
+            return AjaxResult.error("话题无需操作！");
         }
 
-        Integer currentUserId = PoetryUtil.getUserId();
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+
+        Long currentUserId = loginUser.getUserId();
         LambdaQueryChainWrapper<ImChatGroupUser> lambdaQuery = imChatGroupUserService.lambdaQuery();
         lambdaQuery.eq(ImChatGroupUser::getGroupId, groupId);
         lambdaQuery.eq(ImChatGroupUser::getUserId, currentUserId);
         lambdaQuery.eq(ImChatGroupUser::getAdminFlag, ImConfigConst.ADMIN_FLAG_TRUE);
         ImChatGroupUser groupUser = lambdaQuery.one();
         if (groupUser == null) {
-            return PoetryResult.fail("没有审核权限！");
+            return AjaxResult.error("没有审核权限！");
         }
 
         boolean isSuccess;
@@ -164,9 +173,9 @@ public class ImChatGroupUserController {
         }
 
         if (isSuccess) {
-            return PoetryResult.success();
+            return AjaxResult.success();
         } else {
-            return PoetryResult.fail("修改失败！");
+            return AjaxResult.error("修改失败！");
         }
     }
 
@@ -177,22 +186,25 @@ public class ImChatGroupUserController {
      * adminFlag = false 不是管理员
      */
     @GetMapping("/changeAdmin")
-    @LoginCheck
-    public PoetryResult changeAdmin(@RequestParam("groupId") Integer groupId,
-                                    @RequestParam("userId") Integer userId,
+    
+    public AjaxResult changeAdmin(@RequestParam("groupId") Integer groupId,
+                                    @RequestParam("userId") Long userId,
                                     @RequestParam("adminFlag") Boolean adminFlag) {
         ImChatGroup chatGroup = imChatGroupService.getById(groupId);
         if (chatGroup == null) {
-            return PoetryResult.fail("群组不存在！");
+            return AjaxResult.error("群组不存在！");
         }
 
         if (chatGroup.getGroupType().intValue() == ImConfigConst.GROUP_TOPIC) {
-            return PoetryResult.fail("话题无需操作！");
+            return AjaxResult.error("话题无需操作！");
         }
 
-        Integer currentUserId = PoetryUtil.getUserId();
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+
+        Long currentUserId = loginUser.getUserId();
+
         if (chatGroup.getMasterUserId().intValue() != currentUserId.intValue()) {
-            return PoetryResult.fail("群主才能设置管理员！");
+            return AjaxResult.error("群主才能设置管理员！");
         }
 
         LambdaUpdateChainWrapper<ImChatGroupUser> lambdaUpdate = imChatGroupUserService.lambdaUpdate();
@@ -201,25 +213,28 @@ public class ImChatGroupUserController {
         lambdaUpdate.set(ImChatGroupUser::getAdminFlag, adminFlag);
 
         lambdaUpdate.update();
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
     /**
      * 退群
      */
     @GetMapping("/quitGroup")
-    @LoginCheck
-    public PoetryResult quitGroup(@RequestParam("id") Integer id) {
+    
+    public AjaxResult quitGroup(@RequestParam("id") Integer id) {
         ImChatGroup chatGroup = imChatGroupService.getById(id);
         if (chatGroup == null) {
-            return PoetryResult.fail("群组不存在！");
+            return AjaxResult.error("群组不存在！");
         }
 
         if (chatGroup.getGroupType().intValue() == ImConfigConst.GROUP_TOPIC) {
-            return PoetryResult.fail("话题无需操作！");
+            return AjaxResult.error("话题无需操作！");
         }
 
-        Integer userId = PoetryUtil.getUserId();
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+
+        Long userId = loginUser.getUserId();
+
 
         if (chatGroup.getMasterUserId().intValue() == userId.intValue()) {
             //转让群
@@ -253,19 +268,23 @@ public class ImChatGroupUserController {
                 Tio.unbindGroup(tioWebsocketStarter.getServerTioConfig(), String.valueOf(userId), String.valueOf(id));
             }
         }
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
     /**
      * 群管理员查询群用户
      */
     @GetMapping("/getGroupUserByStatus")
-    @LoginCheck
-    public PoetryResult<Page> getGroupUserByStatus(@RequestParam(value = "groupId", required = false) Integer groupId,
+    
+    public AjaxResult getGroupUserByStatus(@RequestParam(value = "groupId", required = false) Integer groupId,
                                                    @RequestParam(value = "userStatus", required = false) Integer userStatus,
                                                    @RequestParam(value = "current", defaultValue = "1") Long current,
                                                    @RequestParam(value = "size", defaultValue = "20") Long size) {
-        Integer userId = PoetryUtil.getUserId();
+
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+
+        Long userId = loginUser.getUserId();
+
         Page<ImChatGroupUser> page = new Page<>();
         page.setCurrent(current);
         page.setSize(size);
@@ -273,11 +292,11 @@ public class ImChatGroupUserController {
         if (groupId != null) {
             ImChatGroup chatGroup = imChatGroupService.getById(groupId);
             if (chatGroup == null) {
-                return PoetryResult.fail("群组不存在！");
+                return AjaxResult.error("群组不存在！");
             }
 
             if (chatGroup.getGroupType().intValue() == ImConfigConst.GROUP_TOPIC) {
-                return PoetryResult.fail("话题没有用户！");
+                return AjaxResult.error("话题没有用户！");
             }
 
             LambdaQueryChainWrapper<ImChatGroupUser> groupLambdaQuery = imChatGroupUserService.lambdaQuery();
@@ -286,7 +305,7 @@ public class ImChatGroupUserController {
             groupLambdaQuery.eq(ImChatGroupUser::getAdminFlag, ImConfigConst.ADMIN_FLAG_TRUE);
             ImChatGroupUser groupUser = groupLambdaQuery.one();
             if (groupUser == null) {
-                return PoetryResult.fail("没有审核权限！");
+                return AjaxResult.error("没有审核权限！");
             }
             lambdaQuery.eq(ImChatGroupUser::getGroupId, groupId);
         } else {
@@ -296,7 +315,7 @@ public class ImChatGroupUserController {
             List<ImChatGroupUser> groupUsers = userLambdaQuery.list();
             if (CollectionUtils.isEmpty(groupUsers)) {
                 // 该用户没有管理任何群
-                return PoetryResult.success();
+                return AjaxResult.success();
             } else {
                 List<Integer> groupIds = groupUsers.stream().map(ImChatGroupUser::getGroupId).collect(Collectors.toList());
                 lambdaQuery.in(ImChatGroupUser::getGroupId, groupIds);
@@ -320,9 +339,11 @@ public class ImChatGroupUserController {
                 GroupUserVO groupUserVO = new GroupUserVO();
                 BeanUtils.copyProperties(g, groupUserVO);
                 groupUserVO.setGroupName(groupName);
-                User user = commonQuery.getUser(groupUserVO.getUserId());
+
+//                User user = commonQuery.getUser(groupUserVO.getUserId());
+                SysUser user = userService.selectUserById(groupUserVO.getUserId());
                 if (user != null) {
-                    groupUserVO.setUsername(user.getUsername());
+                    groupUserVO.setUsername(user.getUserName());
                     groupUserVO.setAvatar(user.getAvatar());
                 }
                 groupUserVOList.add(groupUserVO);
@@ -334,34 +355,37 @@ public class ImChatGroupUserController {
         result.setTotal(page.getTotal());
         result.setCurrent(page.getCurrent());
         result.setSize(page.getSize());
-        return PoetryResult.success(result);
+        return AjaxResult.success(result);
     }
 
     /**
      * 群用户查询群用户
      */
     @GetMapping("/getGroupUser")
-    @LoginCheck
-    public PoetryResult<Page> getGroupUser(@RequestParam("groupId") Integer groupId,
+    
+    public AjaxResult getGroupUser(@RequestParam("groupId") Integer groupId,
                                            @RequestParam(value = "current", defaultValue = "1") Long current,
                                            @RequestParam(value = "size", defaultValue = "20") Long size) {
         ImChatGroup chatGroup = imChatGroupService.getById(groupId);
         if (chatGroup == null) {
-            return PoetryResult.fail("群组不存在！");
+            return AjaxResult.error("群组不存在！");
         }
 
         if (chatGroup.getGroupType().intValue() == ImConfigConst.GROUP_TOPIC) {
-            return PoetryResult.fail("话题没有用户！");
+            return AjaxResult.error("话题没有用户！");
         }
 
-        Integer userId = PoetryUtil.getUserId();
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+
+        Long userId = loginUser.getUserId();
+
         LambdaQueryChainWrapper<ImChatGroupUser> wrapper = imChatGroupUserService.lambdaQuery();
         wrapper.eq(ImChatGroupUser::getUserId, userId);
         wrapper.eq(ImChatGroupUser::getGroupId, groupId);
         wrapper.in(ImChatGroupUser::getUserStatus, ImConfigConst.GROUP_USER_STATUS_PASS, ImConfigConst.GROUP_USER_STATUS_SILENCE);
-        Integer count = wrapper.count();
+        Long count = wrapper.count();
         if (count < 1) {
-            return PoetryResult.fail("未加群！");
+            return AjaxResult.error("未加群！");
         }
 
         Page<ImChatGroupUser> page = new Page<>();
@@ -378,9 +402,10 @@ public class ImChatGroupUserController {
             GroupUserVO groupUserVO = new GroupUserVO();
             BeanUtils.copyProperties(g, groupUserVO);
             groupUserVO.setGroupName(chatGroup.getGroupName());
-            User user = commonQuery.getUser(groupUserVO.getUserId());
+
+            SysUser user = userService.selectUserById(groupUserVO.getUserId());
             if (user != null) {
-                groupUserVO.setUsername(user.getUsername());
+                groupUserVO.setUsername(user.getUserName());
                 groupUserVO.setAvatar(user.getAvatar());
             }
             groupUserVOList.add(groupUserVO);
@@ -391,7 +416,7 @@ public class ImChatGroupUserController {
         result.setTotal(page.getTotal());
         result.setCurrent(page.getCurrent());
         result.setSize(page.getSize());
-        return PoetryResult.success(result);
+        return AjaxResult.success(result);
     }
 }
 

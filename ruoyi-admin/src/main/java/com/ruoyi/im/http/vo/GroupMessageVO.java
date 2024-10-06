@@ -19,7 +19,7 @@ public class GroupMessageVO {
     /**
      * 发送ID
      */
-    private Integer fromId;
+    private Long fromId;
 
     /**
      * 接收ID

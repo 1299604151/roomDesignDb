@@ -3,24 +3,29 @@ package com.ruoyi.im.http.controller;
 
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
-import com.ld.poetry.aop.LoginCheck;
-import com.ld.poetry.aop.SaveCheck;
-import com.ld.poetry.config.PoetryResult;
-import com.ld.poetry.entity.User;
-import com.ld.poetry.enums.CodeMsg;
-import com.ld.poetry.enums.PoetryEnum;
-import com.ld.poetry.im.http.entity.ImChatGroup;
-import com.ld.poetry.im.http.entity.ImChatGroupUser;
-import com.ld.poetry.im.http.entity.ImChatUserGroupMessage;
-import com.ld.poetry.im.http.service.ImChatGroupService;
-import com.ld.poetry.im.http.service.ImChatGroupUserService;
-import com.ld.poetry.im.http.service.ImChatUserGroupMessageService;
-import com.ld.poetry.im.http.vo.GroupVO;
-import com.ld.poetry.im.websocket.ImConfigConst;
-import com.ld.poetry.im.websocket.TioUtil;
-import com.ld.poetry.im.websocket.TioWebsocketStarter;
-import com.ld.poetry.utils.PoetryUtil;
-import com.ld.poetry.vo.BaseRequestVO;
+
+
+import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.domain.model.LoginBody;
+import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.utils.SecurityUtils;
+
+import com.ruoyi.im.http.entity.ImChatGroup;
+import com.ruoyi.im.http.entity.ImChatGroupUser;
+import com.ruoyi.im.http.entity.ImChatUserGroupMessage;
+import com.ruoyi.im.http.enums.CodeMsg;
+import com.ruoyi.im.http.enums.PoetryEnum;
+import com.ruoyi.im.http.service.ImChatGroupService;
+import com.ruoyi.im.http.service.ImChatGroupUserService;
+import com.ruoyi.im.http.service.ImChatUserGroupMessageService;
+import com.ruoyi.im.http.vo.BaseRequestVO;
+import com.ruoyi.im.http.vo.GroupVO;
+import com.ruoyi.im.websocket.ImConfigConst;
+import com.ruoyi.im.websocket.TioUtil;
+import com.ruoyi.im.websocket.TioWebsocketStarter;
+
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -58,14 +63,13 @@ public class ImChatGroupController {
      * 创建群组
      */
     @PostMapping("/creatGroupCommon")
-    @LoginCheck
-    @SaveCheck
-    public PoetryResult creatGroup(@RequestBody ImChatGroup imChatGroup) {
+
+    public AjaxResult creatGroup(@RequestBody ImChatGroup imChatGroup) {
         if (!StringUtils.hasText(imChatGroup.getGroupName())) {
-            return PoetryResult.fail(CodeMsg.PARAMETER_ERROR);
+            return AjaxResult.error(CodeMsg.PARAMETER_ERROR.getMsg());
         }
         imChatGroup.setGroupType(ImConfigConst.GROUP_COMMON);
-        Integer userId = PoetryUtil.getUserId();
+        Long userId = SecurityUtils.getUserId();
         imChatGroup.setMasterUserId(userId);
         imChatGroupService.save(imChatGroup);
 
@@ -81,25 +85,25 @@ public class ImChatGroupController {
             Tio.bindGroup(tioWebsocketStarter.getServerTioConfig(), String.valueOf(userId), String.valueOf(imChatGroup.getId()));
         }
 
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
     /**
      * 创建话题
      */
     @PostMapping("/creatGroupTopic")
-    @LoginCheck(0)
-    public PoetryResult creatGroupTopic(@RequestBody ImChatGroup imChatGroup) {
+
+    public AjaxResult creatGroupTopic(@RequestBody ImChatGroup imChatGroup) {
         if (!StringUtils.hasText(imChatGroup.getGroupName())) {
-            return PoetryResult.fail(CodeMsg.PARAMETER_ERROR);
+            return AjaxResult.error(CodeMsg.PARAMETER_ERROR.getMsg());
         }
         imChatGroup.setGroupType(ImConfigConst.GROUP_TOPIC);
-        Integer userId = PoetryUtil.getUserId();
+        Long userId = SecurityUtils.getUserId();
         imChatGroup.setMasterUserId(userId);
         imChatGroup.setInType(ImConfigConst.IN_TYPE_FALSE);
         imChatGroupService.save(imChatGroup);
 
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
 
@@ -109,11 +113,11 @@ public class ImChatGroupController {
      * 只有群主才能修改组
      */
     @PostMapping("/updateGroup")
-    @LoginCheck
-    public PoetryResult updateGroup(@RequestBody ImChatGroup imChatGroup) {
+    
+    public AjaxResult updateGroup(@RequestBody ImChatGroup imChatGroup) {
         LambdaUpdateChainWrapper<ImChatGroup> lambdaUpdate = imChatGroupService.lambdaUpdate();
         lambdaUpdate.eq(ImChatGroup::getId, imChatGroup.getId());
-        lambdaUpdate.eq(ImChatGroup::getMasterUserId, PoetryUtil.getUserId());
+        lambdaUpdate.eq(ImChatGroup::getMasterUserId, SecurityUtils.getUserId());
         if (StringUtils.hasText(imChatGroup.getGroupName())) {
             lambdaUpdate.set(ImChatGroup::getGroupName, imChatGroup.getGroupName());
         }
@@ -139,29 +143,26 @@ public class ImChatGroupController {
         if (isSuccess && StringUtils.hasText(imChatGroup.getNotice())) {
             // todo 发送群公告
         }
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
     /**
      * 解散群
      */
     @GetMapping("/deleteGroup")
-    @LoginCheck
-    public PoetryResult deleteGroup(@RequestParam("id") Integer id) {
-        User currentUser = PoetryUtil.getCurrentUser();
+    
+    public AjaxResult deleteGroup(@RequestParam("id") Integer id) {
+
+        LoginUser currentUser = SecurityUtils.getLoginUser();
         boolean isSuccess;
-        if (currentUser.getUserType().intValue() == PoetryEnum.USER_TYPE_ADMIN.getCode()) {
-            isSuccess = imChatGroupService.removeById(id);
-        } else {
-            LambdaUpdateChainWrapper<ImChatGroup> lambdaUpdate = imChatGroupService.lambdaUpdate();
-            lambdaUpdate.eq(ImChatGroup::getId, id);
-            lambdaUpdate.eq(ImChatGroup::getMasterUserId, PoetryUtil.getUserId());
-            isSuccess = lambdaUpdate.remove();
-        }
+        LambdaUpdateChainWrapper<ImChatGroup> lambdaUpdate = imChatGroupService.lambdaUpdate();
+        lambdaUpdate.eq(ImChatGroup::getId, id);
+        lambdaUpdate.eq(ImChatGroup::getMasterUserId, SecurityUtils.getUserId());
+        isSuccess = lambdaUpdate.remove();
         if (isSuccess) {
             // 删除用户
-            LambdaUpdateChainWrapper<ImChatGroupUser> lambdaUpdate = imChatGroupUserService.lambdaUpdate();
-            lambdaUpdate.eq(ImChatGroupUser::getGroupId, id).remove();
+            LambdaUpdateChainWrapper<ImChatGroupUser> lambdaUpdateUser = imChatGroupUserService.lambdaUpdate();
+            lambdaUpdateUser.eq(ImChatGroupUser::getGroupId, id).remove();
             // 删除聊天记录
             LambdaUpdateChainWrapper<ImChatUserGroupMessage> messageLambdaUpdateChainWrapper = imChatUserGroupMessageService.lambdaUpdate();
             messageLambdaUpdateChainWrapper.eq(ImChatUserGroupMessage::getGroupId, id).remove();
@@ -171,36 +172,36 @@ public class ImChatGroupController {
                 Tio.removeGroup(tioWebsocketStarter.getServerTioConfig(), String.valueOf(id), "remove group");
             }
         }
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
     /**
      * 管理员查询所有群
      */
     @PostMapping("/listGroupForAdmin")
-    @LoginCheck(0)
-    public PoetryResult<BaseRequestVO> listGroupForAdmin(@RequestBody BaseRequestVO baseRequestVO) {
+
+    public AjaxResult listGroupForAdmin(@RequestBody BaseRequestVO baseRequestVO) {
         LambdaQueryChainWrapper<ImChatGroup> lambdaQuery = imChatGroupService.lambdaQuery();
         lambdaQuery.orderByDesc(ImChatGroup::getCreateTime).page(baseRequestVO);
-        return PoetryResult.success(baseRequestVO);
+        return AjaxResult.success(baseRequestVO);
     }
 
     /**
      * 加入话题
      */
     @GetMapping("/addGroupTopic")
-    @LoginCheck
-    public PoetryResult addGroupTopic(@RequestParam("id") Integer id) {
+    
+    public AjaxResult addGroupTopic(@RequestParam("id") Integer id) {
         LambdaQueryChainWrapper<ImChatGroup> lambdaQuery = imChatGroupService.lambdaQuery();
-        Integer count = lambdaQuery.eq(ImChatGroup::getId, id)
+        Long count = lambdaQuery.eq(ImChatGroup::getId, id)
                 .eq(ImChatGroup::getGroupType, ImConfigConst.GROUP_TOPIC).count();
         if (count == 1) {
             TioWebsocketStarter tioWebsocketStarter = TioUtil.getTio();
             if (tioWebsocketStarter != null) {
-                Tio.bindGroup(tioWebsocketStarter.getServerTioConfig(), String.valueOf(PoetryUtil.getUserId()), String.valueOf(id));
+                Tio.bindGroup(tioWebsocketStarter.getServerTioConfig(), String.valueOf(SecurityUtils.getUserId()), String.valueOf(id));
             }
         }
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
     /**
@@ -209,9 +210,9 @@ public class ImChatGroupController {
      * 只查询审核通过和禁言的群
      */
     @GetMapping("/listGroup")
-    @LoginCheck
-    public PoetryResult<List<GroupVO>> listGroup() {
-        Integer userId = PoetryUtil.getUserId();
+    
+    public AjaxResult listGroup() {
+        Long userId = SecurityUtils.getUserId();
         LambdaQueryChainWrapper<ImChatGroupUser> lambdaQuery = imChatGroupUserService.lambdaQuery();
         lambdaQuery.eq(ImChatGroupUser::getUserId, userId);
         lambdaQuery.in(ImChatGroupUser::getUserStatus, ImConfigConst.GROUP_USER_STATUS_PASS, ImConfigConst.GROUP_USER_STATUS_SILENCE);
@@ -232,11 +233,11 @@ public class ImChatGroupController {
                 imChatGroupUser.setUserStatus(ImConfigConst.GROUP_USER_STATUS_PASS);
                 imChatGroupUser.setCreateTime(LocalDateTime.now());
                 imChatGroupUser.setUserId(userId);
-                imChatGroupUser.setAdminFlag(userId.intValue() == PoetryUtil.getAdminUser().getId().intValue());
+                imChatGroupUser.setAdminFlag(true);
             }
             return getGroupVO(imChatGroup, imChatGroupUser);
         }).collect(Collectors.toList());
-        return PoetryResult.success(groupVOS);
+        return AjaxResult.success(groupVOS);
     }
 
     private GroupVO getGroupVO(ImChatGroup imChatGroup, ImChatGroupUser imChatGroupUser) {

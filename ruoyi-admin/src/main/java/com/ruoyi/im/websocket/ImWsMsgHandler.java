@@ -1,22 +1,28 @@
 package com.ruoyi.im.websocket;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
-import com.ld.poetry.constants.CommonConst;
-import com.ld.poetry.entity.User;
-import com.ld.poetry.im.http.entity.ImChatGroupUser;
-import com.ld.poetry.im.http.entity.ImChatUserGroupMessage;
-import com.ld.poetry.im.http.entity.ImChatUserMessage;
-import com.ld.poetry.im.http.service.ImChatGroupUserService;
-import com.ld.poetry.im.http.service.ImChatUserMessageService;
-import com.ld.poetry.utils.CommonQuery;
-import com.ld.poetry.utils.StringUtil;
-import com.ld.poetry.utils.cache.PoetryCache;
+
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.framework.web.service.TokenService;
+import com.ruoyi.im.http.entity.ImChatGroupUser;
+import com.ruoyi.im.http.entity.ImChatUserGroupMessage;
+import com.ruoyi.im.http.entity.ImChatUserMessage;
+import com.ruoyi.im.http.enums.CommonConst;
+import com.ruoyi.im.http.service.ImChatGroupUserService;
+import com.ruoyi.im.http.service.ImChatUserMessageService;
+
+import com.ruoyi.system.service.ISysUserService;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
 import org.tio.http.common.HttpRequest;
@@ -28,7 +34,10 @@ import org.tio.websocket.server.handler.IWsMsgHandler;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -42,9 +51,15 @@ public class ImWsMsgHandler implements IWsMsgHandler {
 
     @Autowired
     private MessageCache messageCache;
-
     @Autowired
-    private CommonQuery commonQuery;
+    private TokenService tokenService;
+    @Autowired
+    private ISysUserService userService;
+    @Value("${staticPath}")
+    private String staticPath;
+
+
+    
 
     /**
      * 握手时走这个方法，业务可以在这里获取cookie，request等
@@ -59,13 +74,14 @@ public class ImWsMsgHandler implements IWsMsgHandler {
             return null;
         }
 
-        User user = (User) PoetryCache.get(token);
+//        LoginUser loginUser = tokenService.getLoginUserByToken(token);
+        LoginUser loginUser = tokenService.getLoginUserByToken(token);
 
-        if (user == null) {
+        if (loginUser == null) {
             return null;
         }
 
-        log.info("握手成功：用户ID：{}, 用户名：{}", user.getId(), user.getUsername());
+        log.info("握手成功：用户ID：{}, 用户名：{}", loginUser.getUserId(), loginUser.getUsername());
 
         return httpResponse;
     }
@@ -76,11 +92,74 @@ public class ImWsMsgHandler implements IWsMsgHandler {
     @Override
     public void onAfterHandshaked(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext) {
         String token = httpRequest.getParam(CommonConst.TOKEN_HEADER);
-        User user = (User) PoetryCache.get(token);
-        Tio.closeUser(channelContext.tioConfig, user.getId().toString(), null);
-        Tio.bindUser(channelContext, user.getId().toString());
+        LoginUser loginUser = tokenService.getLoginUserByToken(token);
+        Long UserId = loginUser.getUserId();
+        Tio.closeUser(channelContext.tioConfig, loginUser.getUserId().toString(), null);
+        Tio.bindUser(channelContext, loginUser.getUserId().toString());
+        // 新增的查询逻辑
+        List<ImChatUserMessage> latestMessages = imChatUserMessageService.getBaseMapper().selectList(
+                new QueryWrapper<ImChatUserMessage>()
+                        .inSql("id",
+                                "SELECT MAX(id) " +
+                                        "FROM im_chat_user_message " +
+                                        "WHERE (from_id = " + UserId + " OR to_id = " + UserId + ") " +
+                                        "GROUP BY CASE " +
+                                        "    WHEN from_id < to_id THEN CONCAT(from_id, '_', to_id) " +
+                                        "    ELSE CONCAT(to_id, '_', from_id) " +
+                                        "END"
+                        )
+                        .orderByDesc("create_time")
+        );
 
-        List<ImChatUserMessage> userMessages = imChatUserMessageService.lambdaQuery().eq(ImChatUserMessage::getToId, user.getId())
+
+
+
+        // 过滤自己发送的或者已读的消息
+        Map<String, ImChatUserMessage> conversationMap = new HashMap<>();
+        for (ImChatUserMessage msg : latestMessages) {
+            String conversationKey = msg.getFromId() < msg.getToId()
+                    ? msg.getFromId() + "_" + msg.getToId()
+                    : msg.getToId() + "_" + msg.getFromId();
+
+            if (!conversationMap.containsKey(conversationKey)) {
+                conversationMap.put(conversationKey, msg);
+            }
+        }
+
+        // 过滤自己发送的或者已读的消息
+        List<ImChatUserMessage> filteredMessages = conversationMap.values().stream()
+                .filter(msg -> msg.getFromId().equals(UserId) ||
+                        (msg.getToId().equals(UserId) &&
+                                msg.getMessageStatus().equals(ImConfigConst.USER_MESSAGE_STATUS_TRUE)))
+                .collect(Collectors.toList());
+
+        //
+        if (!CollectionUtils.isEmpty(filteredMessages)) {
+            List<Long> ids = new ArrayList<>();
+            filteredMessages.forEach(userMessage -> {
+                ids.add(userMessage.getId());
+                ImMessage imMessage = new ImMessage();
+                imMessage.setContent(userMessage.getContent());
+                imMessage.setFromId(userMessage.getFromId());
+                imMessage.setToId(userMessage.getToId());
+                imMessage.setMessageType(ImEnum.MESSAGE_TYPE_MSG_SINGLE.getCode());
+                imMessage.setMessageStatus(ImConfigConst.USER_MESSAGE_STATUS_TRUE);
+//                User friend = commonQuery.getUser(userMessage.getFromId());
+                SysUser friend = userService.selectUserById(userMessage.getFromId());
+                if (friend != null) {
+                    imMessage.setAvatar(staticPath+friend.getAvatar());
+                }
+                WsResponse wsResponse = WsResponse.fromText(JSON.toJSONString(imMessage), ImConfigConst.CHARSET);
+                Tio.sendToUser(channelContext.tioConfig, UserId.toString(), wsResponse);
+            });
+
+        }
+
+
+
+
+        // 查询自己未读的
+        List<ImChatUserMessage> userMessages = imChatUserMessageService.lambdaQuery().eq(ImChatUserMessage::getToId, loginUser.getUserId())
                 .eq(ImChatUserMessage::getMessageStatus, ImConfigConst.USER_MESSAGE_STATUS_FALSE)
                 .orderByAsc(ImChatUserMessage::getCreateTime).list();
 
@@ -93,9 +172,11 @@ public class ImWsMsgHandler implements IWsMsgHandler {
                 imMessage.setFromId(userMessage.getFromId());
                 imMessage.setToId(userMessage.getToId());
                 imMessage.setMessageType(ImEnum.MESSAGE_TYPE_MSG_SINGLE.getCode());
-                User friend = commonQuery.getUser(userMessage.getFromId());
+                imMessage.setMessageStatus(ImConfigConst.USER_MESSAGE_STATUS_FALSE);
+//                User friend = commonQuery.getUser(userMessage.getFromId());
+                SysUser friend = userService.selectUserById(userMessage.getFromId());
                 if (friend != null) {
-                    imMessage.setAvatar(friend.getAvatar());
+                    imMessage.setAvatar(staticPath+friend.getAvatar());
                 }
                 WsResponse wsResponse = WsResponse.fromText(JSON.toJSONString(imMessage), ImConfigConst.CHARSET);
                 Tio.sendToUser(channelContext.tioConfig, userMessage.getToId().toString(), wsResponse);
@@ -105,9 +186,12 @@ public class ImWsMsgHandler implements IWsMsgHandler {
 
         }
 
+
+
+
         LambdaQueryChainWrapper<ImChatGroupUser> lambdaQuery = imChatGroupUserService.lambdaQuery();
         lambdaQuery.select(ImChatGroupUser::getGroupId);
-        lambdaQuery.eq(ImChatGroupUser::getUserId, user.getId());
+        lambdaQuery.eq(ImChatGroupUser::getUserId, loginUser.getUserId());
         lambdaQuery.in(ImChatGroupUser::getUserStatus, ImConfigConst.GROUP_USER_STATUS_PASS, ImConfigConst.GROUP_USER_STATUS_SILENCE);
         List<ImChatGroupUser> groupUsers = lambdaQuery.list();
         if (!CollectionUtils.isEmpty(groupUsers)) {
@@ -134,7 +218,7 @@ public class ImWsMsgHandler implements IWsMsgHandler {
         try {
             ImMessage imMessage = JSON.parseObject(text, ImMessage.class);
 
-            String content = StringUtil.removeHtml(imMessage.getContent());
+            String content = removeHtml(imMessage.getContent());
             if (!StringUtils.hasText(content)) {
                 return null;
             }
@@ -177,5 +261,9 @@ public class ImWsMsgHandler implements IWsMsgHandler {
         }
         //返回值是要发送给客户端的内容，一般都是返回null
         return null;
+    }
+
+    public static String removeHtml(String content) {
+        return content.replace("<", "《").replace(">", "》");
     }
 }

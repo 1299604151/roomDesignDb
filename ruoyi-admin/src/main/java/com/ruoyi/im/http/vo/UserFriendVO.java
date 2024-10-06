@@ -14,16 +14,16 @@ public class UserFriendVO {
     /**
      * 用户ID
      */
-    private Integer userId;
+    private Long userId;
 
     /**
      * 好友ID
      */
-    private Integer friendId;
+    private Long friendId;
 
     private String username;
 
-    private Integer gender;
+    private String gender;
 
     private String avatar;
 

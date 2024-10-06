@@ -1,9 +1,9 @@
 package com.ruoyi.im.http.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.ld.poetry.im.http.dao.ImChatUserGroupMessageMapper;
-import com.ld.poetry.im.http.entity.ImChatUserGroupMessage;
-import com.ld.poetry.im.http.service.ImChatUserGroupMessageService;
+import com.ruoyi.im.http.mapper.ImChatUserGroupMessageMapper;
+import com.ruoyi.im.http.entity.ImChatUserGroupMessage;
+import com.ruoyi.im.http.service.ImChatUserGroupMessageService;
 import org.springframework.stereotype.Service;
 
 /**

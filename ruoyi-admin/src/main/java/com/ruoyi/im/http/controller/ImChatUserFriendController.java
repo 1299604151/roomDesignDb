@@ -2,16 +2,20 @@ package com.ruoyi.im.http.controller;
 
 
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
-import com.ld.poetry.aop.LoginCheck;
-import com.ld.poetry.config.PoetryResult;
-import com.ld.poetry.entity.User;
-import com.ld.poetry.im.http.entity.ImChatUserFriend;
-import com.ld.poetry.im.http.service.ImChatUserFriendService;
-import com.ld.poetry.im.http.vo.UserFriendVO;
-import com.ld.poetry.im.websocket.ImConfigConst;
-import com.ld.poetry.utils.CommonQuery;
-import com.ld.poetry.utils.PoetryUtil;
+
+import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.im.http.entity.ImChatUserFriend;
+import com.ruoyi.im.http.service.ImChatUserFriendService;
+import com.ruoyi.im.http.vo.UserFriendVO;
+import com.ruoyi.im.websocket.ImConfigConst;
+
+
+import com.ruoyi.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,29 +39,33 @@ public class ImChatUserFriendController {
 
     @Autowired
     private ImChatUserFriendService userFriendService;
-
     @Autowired
-    private CommonQuery commonQuery;
+    ISysUserService userService;
+    @Value("${staticPath}")
+    private String staticPath;
 
     /**
      * 添加好友申请
      */
     @GetMapping("/addFriend")
-    @LoginCheck
-    public PoetryResult addFriend(@RequestParam("friendId") Integer friendId, @RequestParam(value = "remark", required = false) String remark) {
-        User friend = commonQuery.getUser(friendId);
+    
+    public AjaxResult addFriend(@RequestParam("friendId") Long friendId, @RequestParam(value = "remark", required = false) String remark) {
+        SysUser friend = userService.selectUserById(friendId);
+
         if (friend == null) {
-            return PoetryResult.fail("用户不存在！");
+            return AjaxResult.error("用户不存在！");
         }
 
-        Integer userId = PoetryUtil.getUserId();
+        // 获取当前登录的用户
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        Long userId = loginUser.getUserId();
 
-        Integer count = userFriendService.lambdaQuery()
+        Long count = userFriendService.lambdaQuery()
                 .and(wrapper -> wrapper.eq(ImChatUserFriend::getUserId, userId).eq(ImChatUserFriend::getFriendId, friendId))
                 .or(wrapper -> wrapper.eq(ImChatUserFriend::getFriendId, userId).eq(ImChatUserFriend::getUserId, friendId))
                 .count();
         if (count > 0) {
-            return PoetryResult.success();
+            return AjaxResult.success();
         }
 
         ImChatUserFriend imChatFriend = new ImChatUserFriend();
@@ -66,16 +74,17 @@ public class ImChatUserFriendController {
         imChatFriend.setFriendStatus(ImConfigConst.FRIEND_STATUS_NOT_VERIFY);
         imChatFriend.setRemark(remark);
         userFriendService.save(imChatFriend);
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
     /**
      * 查询好友
      */
     @GetMapping("/getFriend")
-    @LoginCheck
-    public PoetryResult<List<UserFriendVO>> getFriend(@RequestParam(value = "friendStatus", required = false) Integer friendStatus) {
-        Integer userId = PoetryUtil.getUserId();
+    
+    public AjaxResult getFriend(@RequestParam(value = "friendStatus", required = false) Integer friendStatus) {
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        Long userId = loginUser.getUserId();
         LambdaQueryChainWrapper<ImChatUserFriend> wrapper = userFriendService.lambdaQuery().eq(ImChatUserFriend::getUserId, userId);
         if (friendStatus != null) {
             wrapper.eq(ImChatUserFriend::getFriendStatus, friendStatus);
@@ -84,23 +93,24 @@ public class ImChatUserFriendController {
         List<ImChatUserFriend> userFriends = wrapper.orderByDesc(ImChatUserFriend::getCreateTime).list();
         List<UserFriendVO> userFriendVOS = new ArrayList<>(userFriends.size());
         userFriends.forEach(userFriend -> {
-            User friend = commonQuery.getUser(userFriend.getFriendId());
+            SysUser friend = userService.selectUserById(userFriend.getFriendId());
+//            User friend = commonQuery.getUser(userFriend.getFriendId());
             if (friend != null) {
                 UserFriendVO userFriendVO = new UserFriendVO();
                 userFriendVO.setId(userFriend.getId());
                 userFriendVO.setUserId(userFriend.getUserId());
                 userFriendVO.setFriendId(userFriend.getFriendId());
                 userFriendVO.setCreateTime(userFriend.getCreateTime());
-                userFriendVO.setRemark(StringUtils.hasText(userFriend.getRemark()) ? userFriend.getRemark() : friend.getUsername());
+                userFriendVO.setRemark(StringUtils.hasText(userFriend.getRemark()) ? userFriend.getRemark() : friend.getUserName());
                 userFriendVO.setFriendStatus(userFriend.getFriendStatus());
-                userFriendVO.setUsername(friend.getUsername());
-                userFriendVO.setAvatar(friend.getAvatar());
-                userFriendVO.setGender(friend.getGender());
-                userFriendVO.setIntroduction(friend.getIntroduction());
+                userFriendVO.setUsername(friend.getUserName());
+                userFriendVO.setAvatar(staticPath+friend.getAvatar());
+                userFriendVO.setGender(friend.getSex());
+                userFriendVO.setIntroduction(friend.getRemark());
                 userFriendVOS.add(userFriendVO);
             }
         });
-        return PoetryResult.success(userFriendVOS);
+        return AjaxResult.success(userFriendVOS);
     }
 
     /**
@@ -109,17 +119,18 @@ public class ImChatUserFriendController {
      * 朋友状态[-1:审核不通过或者删除好友，0:未审核，1:审核通过]
      */
     @GetMapping("/changeFriend")
-    @LoginCheck
-    public PoetryResult changeFriend(@RequestParam("friendId") Integer friendId,
+    
+    public AjaxResult changeFriend(@RequestParam("friendId") Long friendId,
                                      @RequestParam(value = "friendStatus", required = false) Integer friendStatus,
                                      @RequestParam(value = "remark", required = false) String remark) {
-        Integer userId = PoetryUtil.getUserId();
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        Long userId = loginUser.getUserId();
         ImChatUserFriend userFriend = userFriendService.lambdaQuery()
                 .eq(ImChatUserFriend::getUserId, userId)
                 .eq(ImChatUserFriend::getFriendId, friendId).one();
 
         if (userFriend == null) {
-            return PoetryResult.fail("好友不存在！");
+            return AjaxResult.error("好友不存在！");
         }
 
         if (friendStatus != null) {
@@ -150,7 +161,7 @@ public class ImChatUserFriendController {
         }
 
 
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 }
 

@@ -3,16 +3,19 @@ package com.ruoyi.im.http.controller;
 
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.ld.poetry.aop.LoginCheck;
-import com.ld.poetry.config.PoetryResult;
-import com.ld.poetry.entity.User;
-import com.ld.poetry.im.http.entity.ImChatUserMessage;
-import com.ld.poetry.im.http.service.ImChatUserMessageService;
-import com.ld.poetry.im.http.vo.UserMessageVO;
-import com.ld.poetry.im.websocket.ImConfigConst;
-import com.ld.poetry.utils.CommonQuery;
-import com.ld.poetry.utils.PoetryUtil;
+
+import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.im.http.entity.ImChatUserMessage;
+import com.ruoyi.im.http.service.ImChatUserMessageService;
+import com.ruoyi.im.http.vo.UserMessageVO;
+import com.ruoyi.im.websocket.ImConfigConst;
+
+
+import com.ruoyi.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,16 +40,18 @@ public class ImChatUserMessageController {
 
     @Autowired
     private ImChatUserMessageService imChatUserMessageService;
-
     @Autowired
-    private CommonQuery commonQuery;
+    ISysUserService sysUserService;
+
+    @Value("${staticPath}")
+    private String staticPath;
 
     /**
      * 获取系统消息（只获取前十条）
      */
     @GetMapping("/listSystemMessage")
-    @LoginCheck
-    public PoetryResult<Page> listSystemMessage(@RequestParam(value = "current", defaultValue = "1") Long current,
+    
+    public AjaxResult listSystemMessage(@RequestParam(value = "current", defaultValue = "1") Long current,
                                                 @RequestParam(value = "size", defaultValue = "10") Long size) {
         Page<ImChatUserMessage> page = new Page<>();
         page.setCurrent(current);
@@ -62,7 +67,7 @@ public class ImChatUserMessageController {
         List<ImChatUserMessage> records = result.getRecords();
         Collections.reverse(records);
         if (CollectionUtils.isEmpty(records)) {
-            return PoetryResult.success(result);
+            return AjaxResult.success(result);
         } else {
             List<UserMessageVO> collect = records.stream().map(message -> {
                 UserMessageVO userMessageVO = new UserMessageVO();
@@ -76,7 +81,7 @@ public class ImChatUserMessageController {
             resultVO.setTotal(result.getTotal());
             resultVO.setCurrent(result.getCurrent());
             resultVO.setSize(result.getSize());
-            return PoetryResult.success(resultVO);
+            return AjaxResult.success(resultVO);
         }
     }
 
@@ -85,15 +90,15 @@ public class ImChatUserMessageController {
      * 管理员添加系统消息
      */
     @GetMapping("/saveSystemMessage")
-    @LoginCheck(0)
-    public PoetryResult saveSystemMessage(@RequestParam("content") String content) {
+
+    public AjaxResult saveSystemMessage(@RequestParam("content") String content) {
         ImChatUserMessage userMessage = new ImChatUserMessage();
         userMessage.setContent(content);
         userMessage.setFromId(ImConfigConst.DEFAULT_SYSTEM_MESSAGE_ID);
         userMessage.setToId(ImConfigConst.DEFAULT_SYSTEM_MESSAGE_ID);
         userMessage.setMessageStatus(ImConfigConst.USER_MESSAGE_STATUS_TRUE);
         imChatUserMessageService.save(userMessage);
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
 
@@ -101,25 +106,25 @@ public class ImChatUserMessageController {
      * 删除系统消息
      */
     @GetMapping("/deleteSystemMessage")
-    @LoginCheck(0)
-    public PoetryResult deleteSystemMessage(@RequestParam("id") Integer id) {
+
+    public AjaxResult deleteSystemMessage(@RequestParam("id") Integer id) {
         imChatUserMessageService.removeById(id);
-        return PoetryResult.success();
+        return AjaxResult.success();
     }
 
     /**
      * 获取朋友消息（只获取前四十条）
      */
     @GetMapping("/listFriendMessage")
-    @LoginCheck
-    public PoetryResult<Page> listFriendMessage(@RequestParam(value = "current", defaultValue = "1") Long current,
+    
+    public AjaxResult listFriendMessage(@RequestParam(value = "current", defaultValue = "1") Long current,
                                                 @RequestParam(value = "size", defaultValue = "40") Long size,
                                                 @RequestParam(value = "friendId") Integer friendId) {
         Page<ImChatUserMessage> page = new Page<>();
         page.setCurrent(current);
         page.setSize(size);
 
-        Integer userId = PoetryUtil.getUserId();
+        Long userId = SecurityUtils.getUserId();
 
         LambdaQueryChainWrapper<ImChatUserMessage> lambdaQuery = imChatUserMessageService.lambdaQuery();
         lambdaQuery.and(wrapper -> wrapper.eq(ImChatUserMessage::getFromId, userId).eq(ImChatUserMessage::getToId, friendId))
@@ -129,7 +134,7 @@ public class ImChatUserMessageController {
         List<ImChatUserMessage> records = result.getRecords();
         Collections.reverse(records);
         if (CollectionUtils.isEmpty(records)) {
-            return PoetryResult.success(result);
+            return AjaxResult.success(result);
         } else {
             List<UserMessageVO> collect = records.stream().map(message -> {
                 UserMessageVO userMessageVO = new UserMessageVO();
@@ -139,9 +144,10 @@ public class ImChatUserMessageController {
                 userMessageVO.setMessageStatus(message.getMessageStatus());
                 userMessageVO.setId(message.getId());
                 userMessageVO.setCreateTime(message.getCreateTime());
-                User from = commonQuery.getUser(message.getFromId());
+                SysUser from = sysUserService.selectUserById(message.getFromId());
+//                SysUser from = commonQuery.getUser(message.getFromId());
                 if (from != null) {
-                    userMessageVO.setAvatar(from.getAvatar());
+                    userMessageVO.setAvatar(staticPath+from.getAvatar());
                 }
                 return userMessageVO;
             }).collect(Collectors.toList());
@@ -150,7 +156,7 @@ public class ImChatUserMessageController {
             resultVO.setTotal(result.getTotal());
             resultVO.setCurrent(result.getCurrent());
             resultVO.setSize(result.getSize());
-            return PoetryResult.success(resultVO);
+            return AjaxResult.success(resultVO);
         }
     }
 }

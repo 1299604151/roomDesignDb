@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import ChatComponent from '@/views/buss/chat/chat'
 Vue.use(Router)
 
 /* Layout */
@@ -42,28 +41,14 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/chat',
-    name: 'Chat',
-    component: ChatComponent
-  },
-  {
     path: '/login',
     component: () => import('@/views/login'),
     hidden: true
   },
+
   {
     path: '/register',
     component: () => import('@/views/register'),
-    hidden: true
-  },
-  {
-    path: '/farmerRegister',
-    component: () => import('@/views/farmerRegister'),
-    hidden: true
-  },
-  {
-    path: '/technicianRegister',
-    component: () => import('@/views/technicianRegister'),
     hidden: true
   },
   {
@@ -86,7 +71,12 @@ export const constantRoutes = [
         component: () => import('@/views/index'),
         name: 'Index',
         meta: { title: '首页', icon: 'dashboard', affix: true }
-      }
+      },
+      {
+        path: '/buss',
+        component: () => import('@/views/buss/index.vue'),
+        hidden: true
+      },
     ]
   },
   {
