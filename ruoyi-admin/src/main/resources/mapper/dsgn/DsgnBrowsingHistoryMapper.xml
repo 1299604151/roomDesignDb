@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dsgn.mapper.DsgnBrowsingHistoryMapper">
+    
+    <resultMap type="DsgnBrowsingHistory" id="DsgnBrowsingHistoryResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="designSchemeId"    column="design_scheme_id"    />
+        <result property="viewedAt"    column="viewed_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnBrowsingHistoryVo">
+        select id, user_id, design_scheme_id, viewed_at from dsgn_browsing_history
+    </sql>
+
+    <select id="selectDsgnBrowsingHistoryList" parameterType="DsgnBrowsingHistory" resultMap="DsgnBrowsingHistoryResult">
+        <include refid="selectDsgnBrowsingHistoryVo"/>
+        <where>  
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="designSchemeId != null "> and design_scheme_id = #{designSchemeId}</if>
+            <if test="viewedAt != null "> and viewed_at = #{viewedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnBrowsingHistoryById" parameterType="Long" resultMap="DsgnBrowsingHistoryResult">
+        <include refid="selectDsgnBrowsingHistoryVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnBrowsingHistory" parameterType="DsgnBrowsingHistory" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_browsing_history
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="designSchemeId != null">design_scheme_id,</if>
+            <if test="viewedAt != null">viewed_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="designSchemeId != null">#{designSchemeId},</if>
+            <if test="viewedAt != null">#{viewedAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnBrowsingHistory" parameterType="DsgnBrowsingHistory">
+        update dsgn_browsing_history
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="designSchemeId != null">design_scheme_id = #{designSchemeId},</if>
+            <if test="viewedAt != null">viewed_at = #{viewedAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnBrowsingHistoryById" parameterType="Long">
+        delete from dsgn_browsing_history where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnBrowsingHistoryByIds" parameterType="String">
+        delete from dsgn_browsing_history where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

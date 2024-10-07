@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dsgn.mapper.DsgnTicketTimelineMapper">
+    
+    <resultMap type="DsgnTicketTimeline" id="DsgnTicketTimelineResult">
+        <result property="id"    column="id"    />
+        <result property="ticketId"    column="ticket_id"    />
+        <result property="action"    column="action"    />
+        <result property="description"    column="description"    />
+        <result property="createdAt"    column="created_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnTicketTimelineVo">
+        select id, ticket_id, action, description, created_at from dsgn_ticket_timeline
+    </sql>
+
+    <select id="selectDsgnTicketTimelineList" parameterType="DsgnTicketTimeline" resultMap="DsgnTicketTimelineResult">
+        <include refid="selectDsgnTicketTimelineVo"/>
+        <where>  
+            <if test="ticketId != null "> and ticket_id = #{ticketId}</if>
+            <if test="action != null  and action != ''"> and action = #{action}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="createdAt != null "> and created_at = #{createdAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnTicketTimelineById" parameterType="Long" resultMap="DsgnTicketTimelineResult">
+        <include refid="selectDsgnTicketTimelineVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnTicketTimeline" parameterType="DsgnTicketTimeline" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_ticket_timeline
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ticketId != null">ticket_id,</if>
+            <if test="action != null and action != ''">action,</if>
+            <if test="description != null">description,</if>
+            <if test="createdAt != null">created_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ticketId != null">#{ticketId},</if>
+            <if test="action != null and action != ''">#{action},</if>
+            <if test="description != null">#{description},</if>
+            <if test="createdAt != null">#{createdAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnTicketTimeline" parameterType="DsgnTicketTimeline">
+        update dsgn_ticket_timeline
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ticketId != null">ticket_id = #{ticketId},</if>
+            <if test="action != null and action != ''">action = #{action},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnTicketTimelineById" parameterType="Long">
+        delete from dsgn_ticket_timeline where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnTicketTimelineByIds" parameterType="String">
+        delete from dsgn_ticket_timeline where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

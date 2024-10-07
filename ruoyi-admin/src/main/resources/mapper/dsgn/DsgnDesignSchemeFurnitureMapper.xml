@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dsgn.mapper.DsgnDesignSchemeFurnitureMapper">
+    
+    <resultMap type="DsgnDesignSchemeFurniture" id="DsgnDesignSchemeFurnitureResult">
+        <result property="id"    column="id"    />
+        <result property="designSchemeId"    column="design_scheme_id"    />
+        <result property="furnitureItemId"    column="furniture_item_id"    />
+        <result property="createdAt"    column="created_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnDesignSchemeFurnitureVo">
+        select id, design_scheme_id, furniture_item_id, created_at from dsgn_design_scheme_furniture
+    </sql>
+
+    <select id="selectDsgnDesignSchemeFurnitureList" parameterType="DsgnDesignSchemeFurniture" resultMap="DsgnDesignSchemeFurnitureResult">
+        <include refid="selectDsgnDesignSchemeFurnitureVo"/>
+        <where>  
+            <if test="designSchemeId != null "> and design_scheme_id = #{designSchemeId}</if>
+            <if test="furnitureItemId != null "> and furniture_item_id = #{furnitureItemId}</if>
+            <if test="createdAt != null "> and created_at = #{createdAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnDesignSchemeFurnitureById" parameterType="Long" resultMap="DsgnDesignSchemeFurnitureResult">
+        <include refid="selectDsgnDesignSchemeFurnitureVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnDesignSchemeFurniture" parameterType="DsgnDesignSchemeFurniture" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_design_scheme_furniture
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="designSchemeId != null">design_scheme_id,</if>
+            <if test="furnitureItemId != null">furniture_item_id,</if>
+            <if test="createdAt != null">created_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="designSchemeId != null">#{designSchemeId},</if>
+            <if test="furnitureItemId != null">#{furnitureItemId},</if>
+            <if test="createdAt != null">#{createdAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnDesignSchemeFurniture" parameterType="DsgnDesignSchemeFurniture">
+        update dsgn_design_scheme_furniture
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="designSchemeId != null">design_scheme_id = #{designSchemeId},</if>
+            <if test="furnitureItemId != null">furniture_item_id = #{furnitureItemId},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnDesignSchemeFurnitureById" parameterType="Long">
+        delete from dsgn_design_scheme_furniture where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnDesignSchemeFurnitureByIds" parameterType="String">
+        delete from dsgn_design_scheme_furniture where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

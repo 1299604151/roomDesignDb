@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dsgn.mapper.DsgnStylesMapper">
+    
+    <resultMap type="DsgnStyles" id="DsgnStylesResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="description"    column="description"    />
+        <result property="createdAt"    column="created_at"    />
+        <result property="updatedAt"    column="updated_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnStylesVo">
+        select id, name, description, created_at, updated_at from dsgn_styles
+    </sql>
+
+    <select id="selectDsgnStylesList" parameterType="DsgnStyles" resultMap="DsgnStylesResult">
+        <include refid="selectDsgnStylesVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="createdAt != null "> and created_at = #{createdAt}</if>
+            <if test="updatedAt != null "> and updated_at = #{updatedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnStylesById" parameterType="Long" resultMap="DsgnStylesResult">
+        <include refid="selectDsgnStylesVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnStyles" parameterType="DsgnStyles" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_styles
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="description != null">description,</if>
+            <if test="createdAt != null">created_at,</if>
+            <if test="updatedAt != null">updated_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="description != null">#{description},</if>
+            <if test="createdAt != null">#{createdAt},</if>
+            <if test="updatedAt != null">#{updatedAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnStyles" parameterType="DsgnStyles">
+        update dsgn_styles
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnStylesById" parameterType="Long">
+        delete from dsgn_styles where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnStylesByIds" parameterType="String">
+        delete from dsgn_styles where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

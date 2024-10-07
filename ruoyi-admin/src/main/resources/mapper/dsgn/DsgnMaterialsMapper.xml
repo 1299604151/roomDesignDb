@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dsgn.mapper.DsgnMaterialsMapper">
+    
+    <resultMap type="DsgnMaterials" id="DsgnMaterialsResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="description"    column="description"    />
+        <result property="imageUrl"    column="image_url"    />
+        <result property="createdAt"    column="created_at"    />
+        <result property="updatedAt"    column="updated_at"    />
+    </resultMap>
+
+    <sql id="selectDsgnMaterialsVo">
+        select id, name, description, image_url, created_at, updated_at from dsgn_materials
+    </sql>
+
+    <select id="selectDsgnMaterialsList" parameterType="DsgnMaterials" resultMap="DsgnMaterialsResult">
+        <include refid="selectDsgnMaterialsVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="imageUrl != null  and imageUrl != ''"> and image_url = #{imageUrl}</if>
+            <if test="createdAt != null "> and created_at = #{createdAt}</if>
+            <if test="updatedAt != null "> and updated_at = #{updatedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectDsgnMaterialsById" parameterType="Long" resultMap="DsgnMaterialsResult">
+        <include refid="selectDsgnMaterialsVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDsgnMaterials" parameterType="DsgnMaterials" useGeneratedKeys="true" keyProperty="id">
+        insert into dsgn_materials
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="description != null">description,</if>
+            <if test="imageUrl != null">image_url,</if>
+            <if test="createdAt != null">created_at,</if>
+            <if test="updatedAt != null">updated_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="description != null">#{description},</if>
+            <if test="imageUrl != null">#{imageUrl},</if>
+            <if test="createdAt != null">#{createdAt},</if>
+            <if test="updatedAt != null">#{updatedAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDsgnMaterials" parameterType="DsgnMaterials">
+        update dsgn_materials
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDsgnMaterialsById" parameterType="Long">
+        delete from dsgn_materials where id = #{id}
+    </delete>
+
+    <delete id="deleteDsgnMaterialsByIds" parameterType="String">
+        delete from dsgn_materials where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

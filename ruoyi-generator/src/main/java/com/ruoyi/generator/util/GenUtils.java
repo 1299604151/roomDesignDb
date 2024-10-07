@@ -161,11 +161,29 @@ public class GenUtils
      * @param tableName 表名
      * @return 业务名
      */
-    public static String getBusinessName(String tableName)
-    {
-        int lastIndex = tableName.lastIndexOf("_");
-        int nameLength = tableName.length();
-        return StringUtils.substring(tableName, lastIndex + 1, nameLength);
+//    public static String getBusinessName(String tableName)
+//    {
+//        int lastIndex = tableName.lastIndexOf("_");
+//        int nameLength = tableName.length();
+//        return StringUtils.substring(tableName, lastIndex + 1, nameLength);
+//    }
+
+
+    public static String getBusinessName(String tableName) {
+        String[] words = tableName.split("_");
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            if (i == 0) {
+                result.append(word.toLowerCase());
+            } else {
+                result.append(word.substring(0, 1).toUpperCase());
+                result.append(word.substring(1).toLowerCase());
+            }
+        }
+
+        return result.toString();
     }
 
     /**
