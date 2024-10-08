@@ -11,18 +11,18 @@
       </el-form-item>
       <el-form-item label="创建时间" prop="createdAt">
         <el-date-picker clearable
-          v-model="queryParams.createdAt"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择创建时间">
+                        v-model="queryParams.createdAt"
+                        type="date"
+                        value-format="yyyy-MM-dd"
+                        placeholder="请选择创建时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item label="更新时间" prop="updatedAt">
         <el-date-picker clearable
-          v-model="queryParams.updatedAt"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择更新时间">
+                        v-model="queryParams.updatedAt"
+                        type="date"
+                        value-format="yyyy-MM-dd"
+                        placeholder="请选择更新时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -81,9 +81,9 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="偏好ID" align="center" prop="id" />
       <el-table-column label="用户ID" align="center" prop="userId" />
-      <el-table-column label="偏好色彩ID列表，逗号分隔" align="center" prop="colorIds" />
-      <el-table-column label="偏好材料ID列表，逗号分隔" align="center" prop="materialIds" />
-      <el-table-column label="偏好风格ID列表，逗号分隔" align="center" prop="styleIds" />
+      <el-table-column label="偏好色彩ID列表" align="center" prop="colorIds" />
+      <el-table-column label="偏好材料ID列表" align="center" prop="materialIds" />
+      <el-table-column label="偏好风格ID列表" align="center" prop="styleIds" />
       <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createdAt, '{y}-{m}-{d}') }}</span>
@@ -113,7 +113,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -122,51 +122,20 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改用户偏好对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID" />
-        </el-form-item>
-        <el-form-item label="偏好色彩ID列表，逗号分隔" prop="colorIds">
-          <el-input v-model="form.colorIds" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="偏好材料ID列表，逗号分隔" prop="materialIds">
-          <el-input v-model="form.materialIds" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="偏好风格ID列表，逗号分隔" prop="styleIds">
-          <el-input v-model="form.styleIds" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="创建时间" prop="createdAt">
-          <el-date-picker clearable
-            v-model="form.createdAt"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择创建时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="更新时间" prop="updatedAt">
-          <el-date-picker clearable
-            v-model="form.updatedAt"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择更新时间">
-          </el-date-picker>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
+    <!-- 使用新的 AddOrUpdate 组件 -->
+    <AddOrUpdate ref="addOrUpdate" :title="title" @refreshData="getList" />
   </div>
 </template>
 
 <script>
-import { listDsgnPreferences, getDsgnPreferences, delDsgnPreferences, addDsgnPreferences, updateDsgnPreferences } from "@/api/dsgn/dsgnPreferences";
+import { listDsgnPreferences, getDsgnPreferences, delDsgnPreferences } from "@/api/dsgn/dsgnPreferences";
+import AddOrUpdate from './AddOrUpdate.vue';
 
 export default {
   name: "DsgnPreferences",
+  components: {
+    AddOrUpdate
+  },
   data() {
     return {
       // 遮罩层
@@ -185,8 +154,6 @@ export default {
       dsgnPreferencesList: [],
       // 弹出层标题
       title: "",
-      // 是否显示弹出层
-      open: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -197,14 +164,6 @@ export default {
         styleIds: null,
         createdAt: null,
         updatedAt: null
-      },
-      // 表单参数
-      form: {},
-      // 表单校验
-      rules: {
-        userId: [
-          { required: true, message: "用户ID不能为空", trigger: "blur" }
-        ],
       }
     };
   },
@@ -220,24 +179,6 @@ export default {
         this.total = response.total;
         this.loading = false;
       });
-    },
-    // 取消按钮
-    cancel() {
-      this.open = false;
-      this.reset();
-    },
-    // 表单重置
-    reset() {
-      this.form = {
-        id: null,
-        userId: null,
-        colorIds: null,
-        materialIds: null,
-        styleIds: null,
-        createdAt: null,
-        updatedAt: null
-      };
-      this.resetForm("form");
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -257,38 +198,15 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
-      this.reset();
-      this.open = true;
       this.title = "添加用户偏好";
+      this.$refs.addOrUpdate.init({});
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      this.reset();
+      this.title = "修改用户偏好";
       const id = row.id || this.ids
       getDsgnPreferences(id).then(response => {
-        this.form = response.data;
-        this.open = true;
-        this.title = "修改用户偏好";
-      });
-    },
-    /** 提交按钮 */
-    submitForm() {
-      this.$refs["form"].validate(valid => {
-        if (valid) {
-          if (this.form.id != null) {
-            updateDsgnPreferences(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          } else {
-            addDsgnPreferences(this.form).then(response => {
-              this.$modal.msgSuccess("新增成功");
-              this.open = false;
-              this.getList();
-            });
-          }
-        }
+        this.$refs.addOrUpdate.init(response.data);
       });
     },
     /** 删除按钮操作 */

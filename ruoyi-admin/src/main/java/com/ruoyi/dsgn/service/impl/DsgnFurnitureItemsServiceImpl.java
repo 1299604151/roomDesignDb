@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.service.impl;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.dsgn.mapper.DsgnFurnitureItemsMapper;
@@ -14,7 +16,7 @@ import com.ruoyi.dsgn.service.IDsgnFurnitureItemsService;
  * @date 2024-10-07 19:10:47
  */
 @Service
-public class DsgnFurnitureItemsServiceImpl implements IDsgnFurnitureItemsService 
+public class DsgnFurnitureItemsServiceImpl extends ServiceImpl<DsgnFurnitureItemsMapper, DsgnFurnitureItems> implements IDsgnFurnitureItemsService
 {
     @Autowired
     private DsgnFurnitureItemsMapper dsgnFurnitureItemsMapper;

@@ -19,18 +19,18 @@
       </el-form-item>
       <el-form-item label="创建时间" prop="createdAt">
         <el-date-picker clearable
-          v-model="queryParams.createdAt"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择创建时间">
+                        v-model="queryParams.createdAt"
+                        type="date"
+                        value-format="yyyy-MM-dd"
+                        placeholder="请选择创建时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item label="更新时间" prop="updatedAt">
         <el-date-picker clearable
-          v-model="queryParams.updatedAt"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择更新时间">
+                        v-model="queryParams.updatedAt"
+                        type="date"
+                        value-format="yyyy-MM-dd"
+                        placeholder="请选择更新时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -119,7 +119,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -128,45 +128,20 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改色彩对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="色彩名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入色彩名称" />
-        </el-form-item>
-        <el-form-item label="色彩十六进制代码" prop="hexCode">
-          <el-input v-model="form.hexCode" placeholder="请输入色彩十六进制代码" />
-        </el-form-item>
-        <el-form-item label="创建时间" prop="createdAt">
-          <el-date-picker clearable
-            v-model="form.createdAt"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择创建时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="更新时间" prop="updatedAt">
-          <el-date-picker clearable
-            v-model="form.updatedAt"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择更新时间">
-          </el-date-picker>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
+    <!-- 使用新的 AddOrUpdate 组件 -->
+    <AddOrUpdate ref="addOrUpdate" :title="title" @refreshData="getList" />
   </div>
 </template>
 
 <script>
-import { listDsgnColors, getDsgnColors, delDsgnColors, addDsgnColors, updateDsgnColors } from "@/api/dsgn/dsgnColors";
+import { listDsgnColors, getDsgnColors, delDsgnColors } from "@/api/dsgn/dsgnColors";
+import AddOrUpdate from './AddOrUpdate.vue';
 
 export default {
   name: "DsgnColors",
+  components: {
+    AddOrUpdate
+  },
   data() {
     return {
       // 遮罩层
@@ -185,8 +160,6 @@ export default {
       dsgnColorsList: [],
       // 弹出层标题
       title: "",
-      // 是否显示弹出层
-      open: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -195,17 +168,6 @@ export default {
         hexCode: null,
         createdAt: null,
         updatedAt: null
-      },
-      // 表单参数
-      form: {},
-      // 表单校验
-      rules: {
-        name: [
-          { required: true, message: "色彩名称不能为空", trigger: "blur" }
-        ],
-        hexCode: [
-          { required: true, message: "色彩十六进制代码不能为空", trigger: "blur" }
-        ],
       }
     };
   },
@@ -221,22 +183,6 @@ export default {
         this.total = response.total;
         this.loading = false;
       });
-    },
-    // 取消按钮
-    cancel() {
-      this.open = false;
-      this.reset();
-    },
-    // 表单重置
-    reset() {
-      this.form = {
-        id: null,
-        name: null,
-        hexCode: null,
-        createdAt: null,
-        updatedAt: null
-      };
-      this.resetForm("form");
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -256,38 +202,15 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
-      this.reset();
-      this.open = true;
       this.title = "添加色彩";
+      this.$refs.addOrUpdate.init({});
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      this.reset();
+      this.title = "修改色彩";
       const id = row.id || this.ids
       getDsgnColors(id).then(response => {
-        this.form = response.data;
-        this.open = true;
-        this.title = "修改色彩";
-      });
-    },
-    /** 提交按钮 */
-    submitForm() {
-      this.$refs["form"].validate(valid => {
-        if (valid) {
-          if (this.form.id != null) {
-            updateDsgnColors(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          } else {
-            addDsgnColors(this.form).then(response => {
-              this.$modal.msgSuccess("新增成功");
-              this.open = false;
-              this.getList();
-            });
-          }
-        }
+        this.$refs.addOrUpdate.init(response.data);
       });
     },
     /** 删除按钮操作 */

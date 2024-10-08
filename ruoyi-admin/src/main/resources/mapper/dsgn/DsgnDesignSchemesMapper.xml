@@ -11,8 +11,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="price"    column="price"    />
         <result property="styleId"    column="style_id"    />
         <result property="spaceType"    column="space_type"    />
-        <result property="recommendedArea"    column="recommended_area"    />
-        <result property="budgetRange"    column="budget_range"    />
+        <result property="recommendedAreaMin"    column="recommended_area_min"    />
+        <result property="recommendedAreaMax"    column="recommended_area_max"    />
+        <result property="budgetRangeMin"    column="budget_range_min"    />
+        <result property="budgetRangeMax"    column="budget_range_max"    />
         <result property="mainImageUrl"    column="main_image_url"    />
         <result property="previewImages"    column="preview_images"    />
         <result property="colorSchemeDescription"    column="color_scheme_description"    />
@@ -28,7 +30,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectDsgnDesignSchemesVo">
-        select id, title, tagline, price, style_id, space_type, recommended_area, budget_range, main_image_url, preview_images, color_scheme_description, design_concept, features, designer_id, status, publish_date, view_count, like_count, created_at, updated_at from dsgn_design_schemes
+        select id, title, tagline, price, style_id, space_type, recommended_area_min, recommended_area_max, budget_range_min, budget_range_max, main_image_url, preview_images, color_scheme_description, design_concept, features, designer_id, status, publish_date, view_count, like_count, created_at, updated_at from dsgn_design_schemes
     </sql>
 
     <select id="selectDsgnDesignSchemesList" parameterType="DsgnDesignSchemes" resultMap="DsgnDesignSchemesResult">
@@ -39,8 +41,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="price != null "> and price = #{price}</if>
             <if test="styleId != null "> and style_id = #{styleId}</if>
             <if test="spaceType != null  and spaceType != ''"> and space_type = #{spaceType}</if>
-            <if test="recommendedArea != null  and recommendedArea != ''"> and recommended_area = #{recommendedArea}</if>
-            <if test="budgetRange != null  and budgetRange != ''"> and budget_range = #{budgetRange}</if>
+            <if test="recommendedAreaMin != null "> and recommended_area_min = #{recommendedAreaMin}</if>
+            <if test="recommendedAreaMax != null "> and recommended_area_max = #{recommendedAreaMax}</if>
+            <if test="budgetRangeMin != null "> and budget_range_min = #{budgetRangeMin}</if>
+            <if test="budgetRangeMax != null "> and budget_range_max = #{budgetRangeMax}</if>
             <if test="mainImageUrl != null  and mainImageUrl != ''"> and main_image_url = #{mainImageUrl}</if>
             <if test="previewImages != null  and previewImages != ''"> and preview_images = #{previewImages}</if>
             <if test="colorSchemeDescription != null  and colorSchemeDescription != ''"> and color_scheme_description = #{colorSchemeDescription}</if>
@@ -69,8 +73,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="price != null">price,</if>
             <if test="styleId != null">style_id,</if>
             <if test="spaceType != null">space_type,</if>
-            <if test="recommendedArea != null">recommended_area,</if>
-            <if test="budgetRange != null">budget_range,</if>
+            <if test="recommendedAreaMin != null">recommended_area_min,</if>
+            <if test="recommendedAreaMax != null">recommended_area_max,</if>
+            <if test="budgetRangeMin != null">budget_range_min,</if>
+            <if test="budgetRangeMax != null">budget_range_max,</if>
             <if test="mainImageUrl != null">main_image_url,</if>
             <if test="previewImages != null">preview_images,</if>
             <if test="colorSchemeDescription != null">color_scheme_description,</if>
@@ -90,8 +96,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="price != null">#{price},</if>
             <if test="styleId != null">#{styleId},</if>
             <if test="spaceType != null">#{spaceType},</if>
-            <if test="recommendedArea != null">#{recommendedArea},</if>
-            <if test="budgetRange != null">#{budgetRange},</if>
+            <if test="recommendedAreaMin != null">#{recommendedAreaMin},</if>
+            <if test="recommendedAreaMax != null">#{recommendedAreaMax},</if>
+            <if test="budgetRangeMin != null">#{budgetRangeMin},</if>
+            <if test="budgetRangeMax != null">#{budgetRangeMax},</if>
             <if test="mainImageUrl != null">#{mainImageUrl},</if>
             <if test="previewImages != null">#{previewImages},</if>
             <if test="colorSchemeDescription != null">#{colorSchemeDescription},</if>
@@ -115,8 +123,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="price != null">price = #{price},</if>
             <if test="styleId != null">style_id = #{styleId},</if>
             <if test="spaceType != null">space_type = #{spaceType},</if>
-            <if test="recommendedArea != null">recommended_area = #{recommendedArea},</if>
-            <if test="budgetRange != null">budget_range = #{budgetRange},</if>
+            <if test="recommendedAreaMin != null">recommended_area_min = #{recommendedAreaMin},</if>
+            <if test="recommendedAreaMax != null">recommended_area_max = #{recommendedAreaMax},</if>
+            <if test="budgetRangeMin != null">budget_range_min = #{budgetRangeMin},</if>
+            <if test="budgetRangeMax != null">budget_range_max = #{budgetRangeMax},</if>
             <if test="mainImageUrl != null">main_image_url = #{mainImageUrl},</if>
             <if test="previewImages != null">preview_images = #{previewImages},</if>
             <if test="colorSchemeDescription != null">color_scheme_description = #{colorSchemeDescription},</if>

@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.domain;
 
 import java.util.Date;
+
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -13,6 +15,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * @author ruoyi
  * @date 2024-10-07 19:10:48
  */
+@TableName("dsgn_preferences")
 public class DsgnPreferences extends BaseEntity
 {
     private static final long serialVersionUID = 1L;

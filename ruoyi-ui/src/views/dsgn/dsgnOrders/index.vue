@@ -43,18 +43,18 @@
       </el-form-item>
       <el-form-item label="创建时间" prop="createdAt">
         <el-date-picker clearable
-          v-model="queryParams.createdAt"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择创建时间">
+                        v-model="queryParams.createdAt"
+                        type="date"
+                        value-format="yyyy-MM-dd"
+                        placeholder="请选择创建时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item label="更新时间" prop="updatedAt">
         <el-date-picker clearable
-          v-model="queryParams.updatedAt"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择更新时间">
+                        v-model="queryParams.updatedAt"
+                        type="date"
+                        value-format="yyyy-MM-dd"
+                        placeholder="请选择更新时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -147,7 +147,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -156,54 +156,20 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改订单对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID" />
-        </el-form-item>
-        <el-form-item label="设计方案ID" prop="designSchemeId">
-          <el-input v-model="form.designSchemeId" placeholder="请输入设计方案ID" />
-        </el-form-item>
-        <el-form-item label="订单编号" prop="orderNumber">
-          <el-input v-model="form.orderNumber" placeholder="请输入订单编号" />
-        </el-form-item>
-        <el-form-item label="订单金额" prop="amount">
-          <el-input v-model="form.amount" placeholder="请输入订单金额" />
-        </el-form-item>
-        <el-form-item label="支付方式" prop="paymentMethod">
-          <el-input v-model="form.paymentMethod" placeholder="请输入支付方式" />
-        </el-form-item>
-        <el-form-item label="创建时间" prop="createdAt">
-          <el-date-picker clearable
-            v-model="form.createdAt"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择创建时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="更新时间" prop="updatedAt">
-          <el-date-picker clearable
-            v-model="form.updatedAt"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择更新时间">
-          </el-date-picker>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
+    <!-- 使用新的 AddOrUpdate 组件 -->
+    <AddOrUpdate ref="addOrUpdate" :title="title" @refreshData="getList" />
   </div>
 </template>
 
 <script>
-import { listDsgnOrders, getDsgnOrders, delDsgnOrders, addDsgnOrders, updateDsgnOrders } from "@/api/dsgn/dsgnOrders";
+import { listDsgnOrders, getDsgnOrders, delDsgnOrders } from "@/api/dsgn/dsgnOrders";
+import AddOrUpdate from './AddOrUpdate.vue';
 
 export default {
   name: "DsgnOrders",
+  components: {
+    AddOrUpdate
+  },
   data() {
     return {
       // 遮罩层
@@ -222,8 +188,6 @@ export default {
       dsgnOrdersList: [],
       // 弹出层标题
       title: "",
-      // 是否显示弹出层
-      open: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -236,23 +200,6 @@ export default {
         paymentMethod: null,
         createdAt: null,
         updatedAt: null
-      },
-      // 表单参数
-      form: {},
-      // 表单校验
-      rules: {
-        userId: [
-          { required: true, message: "用户ID不能为空", trigger: "blur" }
-        ],
-        designSchemeId: [
-          { required: true, message: "设计方案ID不能为空", trigger: "blur" }
-        ],
-        orderNumber: [
-          { required: true, message: "订单编号不能为空", trigger: "blur" }
-        ],
-        amount: [
-          { required: true, message: "订单金额不能为空", trigger: "blur" }
-        ],
       }
     };
   },
@@ -268,26 +215,6 @@ export default {
         this.total = response.total;
         this.loading = false;
       });
-    },
-    // 取消按钮
-    cancel() {
-      this.open = false;
-      this.reset();
-    },
-    // 表单重置
-    reset() {
-      this.form = {
-        id: null,
-        userId: null,
-        designSchemeId: null,
-        orderNumber: null,
-        amount: null,
-        status: null,
-        paymentMethod: null,
-        createdAt: null,
-        updatedAt: null
-      };
-      this.resetForm("form");
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -307,38 +234,15 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
-      this.reset();
-      this.open = true;
       this.title = "添加订单";
+      this.$refs.addOrUpdate.init({});
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      this.reset();
+      this.title = "修改订单";
       const id = row.id || this.ids
       getDsgnOrders(id).then(response => {
-        this.form = response.data;
-        this.open = true;
-        this.title = "修改订单";
-      });
-    },
-    /** 提交按钮 */
-    submitForm() {
-      this.$refs["form"].validate(valid => {
-        if (valid) {
-          if (this.form.id != null) {
-            updateDsgnOrders(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          } else {
-            addDsgnOrders(this.form).then(response => {
-              this.$modal.msgSuccess("新增成功");
-              this.open = false;
-              this.getList();
-            });
-          }
-        }
+        this.$refs.addOrUpdate.init(response.data);
       });
     },
     /** 删除按钮操作 */

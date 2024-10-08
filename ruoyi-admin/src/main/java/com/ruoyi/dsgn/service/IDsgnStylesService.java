@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.service;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.dsgn.domain.DsgnStyles;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnStyles;
  * @author ruoyi
  * @date 2024-10-07 19:10:48
  */
-public interface IDsgnStylesService 
+public interface IDsgnStylesService extends IService<DsgnStyles>
 {
     /**
      * 查询风格

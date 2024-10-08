@@ -25,7 +25,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * 设计方案Controller
  * 
  * @author ruoyi
- * @date 2024-10-07 19:10:47
+ * @date 2024-10-08 10:20:31
  */
 @RestController
 @RequestMapping("/dsgn/dsgnDesignSchemes")

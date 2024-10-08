@@ -1,15 +1,17 @@
 package com.ruoyi.dsgn.service;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.dsgn.domain.DsgnDesignSchemes;
 
 /**
  * 设计方案Service接口
  * 
  * @author ruoyi
- * @date 2024-10-07 19:10:47
+ * @date 2024-10-08 10:20:31
  */
-public interface IDsgnDesignSchemesService 
+public interface IDsgnDesignSchemesService extends IService<DsgnDesignSchemes>
 {
     /**
      * 查询设计方案

@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.service.impl;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.dsgn.mapper.DsgnTicketTimelineMapper;
@@ -14,7 +16,7 @@ import com.ruoyi.dsgn.service.IDsgnTicketTimelineService;
  * @date 2024-10-07 19:10:48
  */
 @Service
-public class DsgnTicketTimelineServiceImpl implements IDsgnTicketTimelineService 
+public class DsgnTicketTimelineServiceImpl extends ServiceImpl<DsgnTicketTimelineMapper, DsgnTicketTimeline> implements IDsgnTicketTimelineService
 {
     @Autowired
     private DsgnTicketTimelineMapper dsgnTicketTimelineMapper;

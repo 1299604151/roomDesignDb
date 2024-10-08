@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.service;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.dsgn.domain.DsgnTickets;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnTickets;
  * @author ruoyi
  * @date 2024-10-07 19:10:48
  */
-public interface IDsgnTicketsService 
+public interface IDsgnTicketsService extends IService<DsgnTickets>
 {
     /**
      * 查询工单

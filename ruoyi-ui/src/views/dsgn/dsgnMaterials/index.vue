@@ -19,18 +19,18 @@
       </el-form-item>
       <el-form-item label="创建时间" prop="createdAt">
         <el-date-picker clearable
-          v-model="queryParams.createdAt"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择创建时间">
+                        v-model="queryParams.createdAt"
+                        type="date"
+                        value-format="yyyy-MM-dd"
+                        placeholder="请选择创建时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item label="更新时间" prop="updatedAt">
         <el-date-picker clearable
-          v-model="queryParams.updatedAt"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择更新时间">
+                        v-model="queryParams.updatedAt"
+                        type="date"
+                        value-format="yyyy-MM-dd"
+                        placeholder="请选择更新时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -120,7 +120,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -143,18 +143,18 @@
         </el-form-item>
         <el-form-item label="创建时间" prop="createdAt">
           <el-date-picker clearable
-            v-model="form.createdAt"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择创建时间">
+                          v-model="form.createdAt"
+                          type="date"
+                          value-format="yyyy-MM-dd"
+                          placeholder="请选择创建时间">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="更新时间" prop="updatedAt">
           <el-date-picker clearable
-            v-model="form.updatedAt"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择更新时间">
+                          v-model="form.updatedAt"
+                          type="date"
+                          value-format="yyyy-MM-dd"
+                          placeholder="请选择更新时间">
           </el-date-picker>
         </el-form-item>
       </el-form>

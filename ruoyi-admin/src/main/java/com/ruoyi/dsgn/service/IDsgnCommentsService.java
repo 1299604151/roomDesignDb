@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.service;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.dsgn.domain.DsgnComments;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnComments;
  * @author ruoyi
  * @date 2024-10-07 19:10:47
  */
-public interface IDsgnCommentsService 
+public interface IDsgnCommentsService extends IService<DsgnComments>
 {
     /**
      * 查询用户评论

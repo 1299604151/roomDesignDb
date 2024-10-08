@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.mapper;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.dsgn.domain.DsgnOrders;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnOrders;
  * @author ruoyi
  * @date 2024-10-07 19:10:47
  */
-public interface DsgnOrdersMapper 
+public interface DsgnOrdersMapper extends BaseMapper<DsgnOrders>
 {
     /**
      * 查询订单

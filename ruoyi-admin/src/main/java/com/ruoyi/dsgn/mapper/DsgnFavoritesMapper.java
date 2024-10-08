@@ -1,6 +1,9 @@
 package com.ruoyi.dsgn.mapper;
 
 import java.util.List;
+
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.dsgn.domain.DsgnFavorites;
 
 /**
@@ -9,7 +12,7 @@ import com.ruoyi.dsgn.domain.DsgnFavorites;
  * @author ruoyi
  * @date 2024-10-07 19:10:47
  */
-public interface DsgnFavoritesMapper 
+public interface DsgnFavoritesMapper extends BaseMapper<DsgnFavorites>
 {
     /**
      * 查询用户收藏

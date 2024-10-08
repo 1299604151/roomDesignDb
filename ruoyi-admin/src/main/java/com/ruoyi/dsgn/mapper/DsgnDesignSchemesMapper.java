@@ -1,15 +1,17 @@
 package com.ruoyi.dsgn.mapper;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.dsgn.domain.DsgnDesignSchemes;
 
 /**
  * 设计方案Mapper接口
  * 
  * @author ruoyi
- * @date 2024-10-07 19:10:47
+ * @date 2024-10-08 10:20:31
  */
-public interface DsgnDesignSchemesMapper 
+public interface DsgnDesignSchemesMapper extends BaseMapper<DsgnDesignSchemes>
 {
     /**
      * 查询设计方案

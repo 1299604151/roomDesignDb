@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.mapper;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.dsgn.domain.DsgnTicketTimeline;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnTicketTimeline;
  * @author ruoyi
  * @date 2024-10-07 19:10:48
  */
-public interface DsgnTicketTimelineMapper 
+public interface DsgnTicketTimelineMapper extends BaseMapper<DsgnTicketTimeline>
 {
     /**
      * 查询工单时间线

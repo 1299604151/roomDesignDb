@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.service.impl;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.dsgn.mapper.DsgnColorsMapper;
@@ -14,7 +16,7 @@ import com.ruoyi.dsgn.service.IDsgnColorsService;
  * @date 2024-10-07 19:10:47
  */
 @Service
-public class DsgnColorsServiceImpl implements IDsgnColorsService 
+public class DsgnColorsServiceImpl extends ServiceImpl<DsgnColorsMapper,DsgnColors> implements IDsgnColorsService
 {
     @Autowired
     private DsgnColorsMapper dsgnColorsMapper;

@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.mapper;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.dsgn.domain.DsgnPreferences;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnPreferences;
  * @author ruoyi
  * @date 2024-10-07 19:10:48
  */
-public interface DsgnPreferencesMapper 
+public interface DsgnPreferencesMapper extends BaseMapper<DsgnPreferences>
 {
     /**
      * 查询用户偏好

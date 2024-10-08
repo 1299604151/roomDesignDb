@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.mapper;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.dsgn.domain.DsgnDesignSchemeFurniture;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnDesignSchemeFurniture;
  * @author ruoyi
  * @date 2024-10-07 19:10:47
  */
-public interface DsgnDesignSchemeFurnitureMapper 
+public interface DsgnDesignSchemeFurnitureMapper extends BaseMapper<DsgnDesignSchemeFurniture>
 {
     /**
      * 查询家具素材-设计方案关联

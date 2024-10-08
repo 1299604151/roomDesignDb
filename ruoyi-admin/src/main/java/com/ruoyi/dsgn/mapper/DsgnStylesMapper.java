@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.mapper;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.dsgn.domain.DsgnStyles;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnStyles;
  * @author ruoyi
  * @date 2024-10-07 19:10:48
  */
-public interface DsgnStylesMapper 
+public interface DsgnStylesMapper extends BaseMapper<DsgnStyles>
 {
     /**
      * 查询风格

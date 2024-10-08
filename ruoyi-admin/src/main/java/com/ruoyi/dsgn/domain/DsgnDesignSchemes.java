@@ -2,6 +2,8 @@ package com.ruoyi.dsgn.domain;
 
 import java.math.BigDecimal;
 import java.util.Date;
+
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -12,8 +14,9 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 设计方案对象 dsgn_design_schemes
  * 
  * @author ruoyi
- * @date 2024-10-07 19:10:47
+ * @date 2024-10-08 10:20:31
  */
+@TableName("dsgn_design_schemes")
 public class DsgnDesignSchemes extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
@@ -41,13 +44,21 @@ public class DsgnDesignSchemes extends BaseEntity
     @Excel(name = "适用空间")
     private String spaceType;
 
-    /** 推荐面积 */
-    @Excel(name = "推荐面积")
-    private String recommendedArea;
+    /** 推荐面积下限 */
+    @Excel(name = "推荐面积下限")
+    private BigDecimal recommendedAreaMin;
 
-    /** 预算范围 */
-    @Excel(name = "预算范围")
-    private String budgetRange;
+    /** 推荐面积上限 */
+    @Excel(name = "推荐面积上限")
+    private BigDecimal recommendedAreaMax;
+
+    /** 预算范围下限 */
+    @Excel(name = "预算范围下限")
+    private BigDecimal budgetRangeMin;
+
+    /** 预算上限 */
+    @Excel(name = "预算上限")
+    private BigDecimal budgetRangeMax;
 
     /** 主图URL */
     @Excel(name = "主图URL")
@@ -154,23 +165,41 @@ public class DsgnDesignSchemes extends BaseEntity
     {
         return spaceType;
     }
-    public void setRecommendedArea(String recommendedArea) 
+    public void setRecommendedAreaMin(BigDecimal recommendedAreaMin) 
     {
-        this.recommendedArea = recommendedArea;
+        this.recommendedAreaMin = recommendedAreaMin;
     }
 
-    public String getRecommendedArea() 
+    public BigDecimal getRecommendedAreaMin() 
     {
-        return recommendedArea;
+        return recommendedAreaMin;
     }
-    public void setBudgetRange(String budgetRange) 
+    public void setRecommendedAreaMax(BigDecimal recommendedAreaMax) 
     {
-        this.budgetRange = budgetRange;
+        this.recommendedAreaMax = recommendedAreaMax;
     }
 
-    public String getBudgetRange() 
+    public BigDecimal getRecommendedAreaMax() 
     {
-        return budgetRange;
+        return recommendedAreaMax;
+    }
+    public void setBudgetRangeMin(BigDecimal budgetRangeMin) 
+    {
+        this.budgetRangeMin = budgetRangeMin;
+    }
+
+    public BigDecimal getBudgetRangeMin() 
+    {
+        return budgetRangeMin;
+    }
+    public void setBudgetRangeMax(BigDecimal budgetRangeMax) 
+    {
+        this.budgetRangeMax = budgetRangeMax;
+    }
+
+    public BigDecimal getBudgetRangeMax() 
+    {
+        return budgetRangeMax;
     }
     public void setMainImageUrl(String mainImageUrl) 
     {
@@ -290,8 +319,10 @@ public class DsgnDesignSchemes extends BaseEntity
             .append("price", getPrice())
             .append("styleId", getStyleId())
             .append("spaceType", getSpaceType())
-            .append("recommendedArea", getRecommendedArea())
-            .append("budgetRange", getBudgetRange())
+            .append("recommendedAreaMin", getRecommendedAreaMin())
+            .append("recommendedAreaMax", getRecommendedAreaMax())
+            .append("budgetRangeMin", getBudgetRangeMin())
+            .append("budgetRangeMax", getBudgetRangeMax())
             .append("mainImageUrl", getMainImageUrl())
             .append("previewImages", getPreviewImages())
             .append("colorSchemeDescription", getColorSchemeDescription())

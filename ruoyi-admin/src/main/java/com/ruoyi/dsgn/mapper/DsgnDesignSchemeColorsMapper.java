@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.mapper;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.dsgn.domain.DsgnDesignSchemeColors;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnDesignSchemeColors;
  * @author ruoyi
  * @date 2024-10-07 19:10:47
  */
-public interface DsgnDesignSchemeColorsMapper 
+public interface DsgnDesignSchemeColorsMapper extends BaseMapper<DsgnDesignSchemeColors>
 {
     /**
      * 查询设计方案-色彩关联

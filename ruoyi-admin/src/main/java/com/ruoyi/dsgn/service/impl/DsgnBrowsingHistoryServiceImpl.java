@@ -1,6 +1,9 @@
 package com.ruoyi.dsgn.service.impl;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.dsgn.mapper.DsgnBrowsingHistoryMapper;
@@ -14,7 +17,7 @@ import com.ruoyi.dsgn.service.IDsgnBrowsingHistoryService;
  * @date 2024-10-07 19:10:47
  */
 @Service
-public class DsgnBrowsingHistoryServiceImpl implements IDsgnBrowsingHistoryService 
+public class DsgnBrowsingHistoryServiceImpl extends ServiceImpl<DsgnBrowsingHistoryMapper,DsgnBrowsingHistory> implements IDsgnBrowsingHistoryService
 {
     @Autowired
     private DsgnBrowsingHistoryMapper dsgnBrowsingHistoryMapper;

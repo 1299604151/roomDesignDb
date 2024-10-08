@@ -19,10 +19,10 @@
       </el-form-item>
       <el-form-item label="收藏时间" prop="createdAt">
         <el-date-picker clearable
-          v-model="queryParams.createdAt"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择收藏时间">
+                        v-model="queryParams.createdAt"
+                        type="date"
+                        value-format="yyyy-MM-dd"
+                        placeholder="请选择收藏时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -106,7 +106,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -115,37 +115,20 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改用户收藏对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID" />
-        </el-form-item>
-        <el-form-item label="设计方案ID" prop="designSchemeId">
-          <el-input v-model="form.designSchemeId" placeholder="请输入设计方案ID" />
-        </el-form-item>
-        <el-form-item label="收藏时间" prop="createdAt">
-          <el-date-picker clearable
-            v-model="form.createdAt"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择收藏时间">
-          </el-date-picker>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
+    <!-- 使用新的 AddOrUpdate 组件 -->
+    <AddOrUpdate ref="addOrUpdate" :title="title" @refreshData="getList" />
   </div>
 </template>
 
 <script>
-import { listDsgnFavorites, getDsgnFavorites, delDsgnFavorites, addDsgnFavorites, updateDsgnFavorites } from "@/api/dsgn/dsgnFavorites";
+import { listDsgnFavorites, getDsgnFavorites, delDsgnFavorites } from "@/api/dsgn/dsgnFavorites";
+import AddOrUpdate from './AddOrUpdate.vue';
 
 export default {
   name: "DsgnFavorites",
+  components: {
+    AddOrUpdate
+  },
   data() {
     return {
       // 遮罩层
@@ -164,8 +147,6 @@ export default {
       dsgnFavoritesList: [],
       // 弹出层标题
       title: "",
-      // 是否显示弹出层
-      open: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -173,17 +154,6 @@ export default {
         userId: null,
         designSchemeId: null,
         createdAt: null
-      },
-      // 表单参数
-      form: {},
-      // 表单校验
-      rules: {
-        userId: [
-          { required: true, message: "用户ID不能为空", trigger: "blur" }
-        ],
-        designSchemeId: [
-          { required: true, message: "设计方案ID不能为空", trigger: "blur" }
-        ],
       }
     };
   },
@@ -199,21 +169,6 @@ export default {
         this.total = response.total;
         this.loading = false;
       });
-    },
-    // 取消按钮
-    cancel() {
-      this.open = false;
-      this.reset();
-    },
-    // 表单重置
-    reset() {
-      this.form = {
-        id: null,
-        userId: null,
-        designSchemeId: null,
-        createdAt: null
-      };
-      this.resetForm("form");
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -233,38 +188,15 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
-      this.reset();
-      this.open = true;
       this.title = "添加用户收藏";
+      this.$refs.addOrUpdate.init({});
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      this.reset();
+      this.title = "修改用户收藏";
       const id = row.id || this.ids
       getDsgnFavorites(id).then(response => {
-        this.form = response.data;
-        this.open = true;
-        this.title = "修改用户收藏";
-      });
-    },
-    /** 提交按钮 */
-    submitForm() {
-      this.$refs["form"].validate(valid => {
-        if (valid) {
-          if (this.form.id != null) {
-            updateDsgnFavorites(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          } else {
-            addDsgnFavorites(this.form).then(response => {
-              this.$modal.msgSuccess("新增成功");
-              this.open = false;
-              this.getList();
-            });
-          }
-        }
+        this.$refs.addOrUpdate.init(response.data);
       });
     },
     /** 删除按钮操作 */

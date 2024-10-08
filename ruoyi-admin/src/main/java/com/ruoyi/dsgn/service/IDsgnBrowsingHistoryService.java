@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.service;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.dsgn.domain.DsgnBrowsingHistory;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnBrowsingHistory;
  * @author ruoyi
  * @date 2024-10-07 19:10:47
  */
-public interface IDsgnBrowsingHistoryService 
+public interface IDsgnBrowsingHistoryService extends IService<DsgnBrowsingHistory>
 {
     /**
      * 查询用户浏览历史

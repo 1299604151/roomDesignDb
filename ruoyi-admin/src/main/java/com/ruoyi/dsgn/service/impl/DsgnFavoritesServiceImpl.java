@@ -1,9 +1,12 @@
 package com.ruoyi.dsgn.service.impl;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.ruoyi.dsgn.mapper.DsgnFavoritesMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.ruoyi.dsgn.mapper.DsgnFavoritesMapper;
+
 import com.ruoyi.dsgn.domain.DsgnFavorites;
 import com.ruoyi.dsgn.service.IDsgnFavoritesService;
 
@@ -14,7 +17,7 @@ import com.ruoyi.dsgn.service.IDsgnFavoritesService;
  * @date 2024-10-07 19:10:47
  */
 @Service
-public class DsgnFavoritesServiceImpl implements IDsgnFavoritesService 
+public class DsgnFavoritesServiceImpl extends ServiceImpl<DsgnFavoritesMapper, DsgnFavorites> implements IDsgnFavoritesService
 {
     @Autowired
     private DsgnFavoritesMapper dsgnFavoritesMapper;

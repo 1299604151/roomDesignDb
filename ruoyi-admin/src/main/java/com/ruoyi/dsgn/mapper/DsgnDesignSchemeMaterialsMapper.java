@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.mapper;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.dsgn.domain.DsgnDesignSchemeMaterials;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.dsgn.domain.DsgnDesignSchemeMaterials;
  * @author ruoyi
  * @date 2024-10-07 19:10:47
  */
-public interface DsgnDesignSchemeMaterialsMapper 
+public interface DsgnDesignSchemeMaterialsMapper extends BaseMapper<DsgnDesignSchemeMaterials>
 {
     /**
      * 查询设计方案-材料关联

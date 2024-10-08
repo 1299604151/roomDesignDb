@@ -1,6 +1,8 @@
 package com.ruoyi.dsgn.service.impl;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.dsgn.mapper.DsgnOrdersMapper;
@@ -14,7 +16,7 @@ import com.ruoyi.dsgn.service.IDsgnOrdersService;
  * @date 2024-10-07 19:10:47
  */
 @Service
-public class DsgnOrdersServiceImpl implements IDsgnOrdersService 
+public class DsgnOrdersServiceImpl extends ServiceImpl<DsgnOrdersMapper, DsgnOrders> implements IDsgnOrdersService
 {
     @Autowired
     private DsgnOrdersMapper dsgnOrdersMapper;
